@@ -228,7 +228,11 @@ const Settings: Component<SettingsProps> = (props) => {
       </Tabs>
 
       {/* Save bar — slides in when there are unsaved config changes */}
-      <div class={`settings-save-bar${isDirty() ? " settings-save-bar--visible" : ""}`}>
+      <div
+        class={`settings-save-bar${isDirty() ? " settings-save-bar--visible" : ""}`}
+        inert={!isDirty() || undefined}
+        aria-hidden={!isDirty()}
+      >
         <span class="settings-save-bar-label">{language.t("settings.saveBar.unsavedChanges")}</span>
         <Button variant="ghost" size="small" onClick={discardConfig}>
           {language.t("settings.saveBar.discard")}
