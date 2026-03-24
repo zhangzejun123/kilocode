@@ -128,6 +128,7 @@ export interface SessionFileDiff {
 // Session info (simplified for webview)
 export interface SessionInfo {
   id: string
+  parentID?: string | null
   title?: string
   createdAt: string
   updatedAt: string

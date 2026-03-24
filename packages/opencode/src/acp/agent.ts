@@ -106,7 +106,25 @@ export namespace ACP {
     }
 
     const used = msg.tokens.input + (msg.tokens.cache?.read ?? 0)
-    const totalCost = assistantMessages.reduce((sum, m) => sum + m.info.cost, 0)
+    // kilocode_change start - include subagent session costs in total
+    const children = await sdk.session
+      .children({ sessionID, directory }, { throwOnError: true })
+      .then((x) => x.data ?? [])
+      .catch(() => [] as { id: string }[])
+    const childCost = await Promise.all(
+      children.map((child) =>
+        sdk.session
+          .messages({ sessionID: child.id, directory }, { throwOnError: true })
+          .then((x) =>
+            (x.data ?? [])
+              .filter((m): m is (typeof assistantMessages)[number] => m.info.role === "assistant")
+              .reduce((sum, m) => sum + m.info.cost, 0),
+          )
+          .catch(() => 0),
+      ),
+    ).then((costs) => costs.reduce((a, b) => a + b, 0))
+    const totalCost = assistantMessages.reduce((sum, m) => sum + m.info.cost, 0) + childCost
+    // kilocode_change end
 
     await connection
       .sessionUpdate({
