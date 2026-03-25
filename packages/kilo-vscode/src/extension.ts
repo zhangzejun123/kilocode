@@ -56,6 +56,12 @@ export function activate(context: vscode.ExtensionContext) {
     }),
   )
 
+  // Ensure Agent Manager keybindings work when a VS Code terminal has focus.
+  // The terminal intercepts all keystrokes unless the command is listed in
+  // terminal.integrated.commandsToSkipShell, which only contains built-in
+  // commands by default.
+  ensureCommandsSkipShell(["kilo-code.new.agentManagerOpen", "kilo-code.new.agentManager.showTerminal"])
+
   // Create Agent Manager provider for editor panel
   const agentManagerHost = new VscodeHost(context.extensionUri, connectionService, context)
   const agentManagerProvider = new AgentManagerProvider(agentManagerHost, connectionService)
@@ -352,6 +358,26 @@ async function openKiloInNewTab(context: vscode.ExtensionContext, connectionServ
     null,
     context.subscriptions,
   )
+}
+
+/**
+ * Add extension commands to terminal.integrated.commandsToSkipShell so they
+ * work when a VS Code terminal has focus. The setting only ships with built-in
+ * commands; extension commands must be added explicitly.
+ */
+function ensureCommandsSkipShell(commands: string[]): void {
+  const config = vscode.workspace.getConfiguration("terminal.integrated")
+  const info = config.inspect<string[]>("commandsToSkipShell")
+  // Update whichever scope already carries an override so we don't
+  // shadow workspace settings or leak workspace values into global.
+  const [existing, target] = info?.workspaceFolderValue
+    ? [info.workspaceFolderValue, vscode.ConfigurationTarget.WorkspaceFolder]
+    : info?.workspaceValue
+      ? [info.workspaceValue, vscode.ConfigurationTarget.Workspace]
+      : [info?.globalValue ?? [], vscode.ConfigurationTarget.Global]
+  const missing = commands.filter((cmd) => !existing.includes(cmd))
+  if (missing.length === 0) return
+  config.update("commandsToSkipShell", [...existing, ...missing], target)
 }
 
 function waitForWebviewPanelToBeActive(panel: vscode.WebviewPanel): Promise<void> {

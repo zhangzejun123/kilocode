@@ -103,6 +103,7 @@ export class AgentManagerProvider implements Disposable {
     if (this.panel) {
       this.log("Panel already open, revealing")
       this.panel.reveal()
+      this.postToWebview({ type: "action", action: "focusInput" })
       return
     }
     this.log("Opening Agent Manager panel")
@@ -1814,6 +1815,7 @@ export class AgentManagerProvider implements Disposable {
   public focusPanel(): void {
     if (!this.panel) return
     this.panel.reveal(false)
+    this.postToWebview({ type: "action", action: "focusInput" })
   }
 
   public isActive(): boolean {
