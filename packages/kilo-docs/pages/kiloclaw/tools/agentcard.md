@@ -7,8 +7,6 @@ description: "Enable your KiloClaw agents to perform financial transactions with
 
 Enable your KiloClaw agents to perform financial transactions by creating and managing virtual debit cards. This integration allows for automated purchasing and expense management within set limits.
 
-> ⚠️ **Important:** This tool permits your agent to spend real money. Use extreme caution with budget limits. AgentCard is currently in Beta; card issuance may be limited or waitlisted.
-
 ## AgentCard Setup
 
 ### 1. Create an AgentCard Account
