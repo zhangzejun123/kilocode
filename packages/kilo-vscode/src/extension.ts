@@ -166,9 +166,6 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("kilo-code.new.historyButtonClicked", () => {
       provider.postMessage({ type: "action", action: "historyButtonClicked" })
     }),
-    vscode.commands.registerCommand("kilo-code.new.cloudHistoryButtonClicked", () => {
-      provider.postMessage({ type: "action", action: "cloudHistoryButtonClicked" })
-    }),
     vscode.commands.registerCommand("kilo-code.new.cycleAgentMode", () => {
       provider.postMessage({ type: "action", action: "cycleAgentMode" })
       agentManagerProvider.postMessage({ type: "action", action: "cycleAgentMode" })
