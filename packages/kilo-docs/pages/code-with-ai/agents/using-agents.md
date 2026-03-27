@@ -50,7 +50,7 @@ Four ways to switch modes:
 
    {% image src="/docs/img/modes/modes.png" alt="Using the dropdown menu to switch modes" width="400" /%}
 
-2. **Slash command:** Type `/agents` or `/modes` to list modes and switch.  Type `/new` to create a new task. 
+2. **Slash command:** Type `/agents` or `/modes` to list modes and switch. Type `/new` to create a new task, and `/compact` to condense context. 
 
    {% image src="/docs/img/modes/modes-1.png" alt="Using slash commands to switch modes" width="400" /%}
 
