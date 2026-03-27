@@ -17,6 +17,7 @@ import { Locale } from "@/util/locale"
 import { Global } from "@/global"
 import { useDialog } from "../../ui/dialog"
 import { useTuiConfig } from "../../context/tui-config"
+import { ConfigProtection } from "@/kilocode/permission/config-paths" // kilocode_change
 
 type PermissionStage = "permission" | "always" | "everything" | "reject" // kilocode_change
 
@@ -457,12 +458,18 @@ export function PermissionPrompt(props: { request: PermissionRequest }) {
             </box>
           )
 
+          // kilocode_change start — hide "Always allow" for config file edits, add "Allow everything"
+          const options: Record<string, string> = props.request.metadata?.[ConfigProtection.DISABLE_ALWAYS_KEY]
+            ? { once: "Allow once", everything: "Allow everything", reject: "Reject" }
+            : { once: "Allow once", always: "Allow always", everything: "Allow everything", reject: "Reject" }
+          // kilocode_change end
+
           const body = (
             <Prompt
               title="Permission required"
               header={header()}
               body={current.body}
-              options={{ once: "Allow once", always: "Allow always", everything: "Allow everything", reject: "Reject" }}
+              options={options}
               escapeKey="reject"
               fullscreen
               onSelect={(option) => {

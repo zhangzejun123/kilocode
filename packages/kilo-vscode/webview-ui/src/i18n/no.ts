@@ -913,8 +913,7 @@ export const dict = {
   "settings.autocomplete.title": "Autofullfør",
   "settings.notifications.title": "Varslinger",
   "settings.context.title": "Kontekst",
-  "settings.terminal.title": "Terminal",
-  "settings.prompts.title": "Meldinger",
+
   "settings.experimental.title": "Eksperimentelt",
   "settings.language.title": "Språk",
   "settings.aboutKiloCode.title": "Om Kilo Code",
@@ -989,8 +988,7 @@ export const dict = {
 
   "common.add": "Legg til",
   "common.choose": "Velg…",
-  "settings.notImplemented": "Denne seksjonen er ikke implementert ennå.",
-  "settings.notImplemented.description": "Den vil inneholde konfigurasjonsalternativer og forklarende tekst.",
+
   "settings.autocomplete.autoTrigger.title": "Aktiver automatisk innebygd fullføring",
   "settings.autocomplete.autoTrigger.description": "Vis automatisk innebygde fullføringsforslag ved skriving",
   "settings.autocomplete.smartKeybinding.title": "Aktiver smart innebygd oppgavetastbinding",
@@ -1133,7 +1131,7 @@ export const dict = {
     "Ingen egendefinerte kommandoer konfigurert. Legg til kommandoer i opencode.json for å se dem her.",
   "settings.agentBehaviour.workflows.detail.description": "Beskrivelse",
   "settings.agentBehaviour.workflows.detail.template": "Mal",
-  "settings.agentBehaviour.notImplemented": "Ikke implementert ennå.",
+
   "settings.autoApprove.description":
     "Definer hvordan verktøy kan kjøre. De fleste verktøy har Tillat som standard. doom_loop og external_directory har Spør som standard.",
   "settings.autoApprove.level.allow": "Tillat",
@@ -1186,7 +1184,8 @@ export const dict = {
   "settings.providers.defaultModel.title": "Standardmodell",
   "settings.providers.defaultModel.description": "Primær modell for samtaler",
   "settings.providers.smallModel.title": "Liten modell",
-  "settings.providers.smallModel.description": "Lettvektsmodell for titelgenerering og raske oppgaver",
+  "settings.providers.smallModel.description":
+    "Lettvektsmodell for titelgenerering, generering av commit-meldinger, prompt-forbedring og andre raske oppgaver",
   "settings.providers.disabled": "Deaktiverte leverandører",
   "settings.providers.disabled.description": "Leverandører å skjule fra listen",
   "settings.providers.enabled": "Aktiverte leverandører (hvitliste)",

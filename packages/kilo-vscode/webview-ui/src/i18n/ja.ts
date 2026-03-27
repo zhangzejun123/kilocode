@@ -908,8 +908,7 @@ export const dict = {
   "settings.autocomplete.title": "オートコンプリート",
   "settings.notifications.title": "通知",
   "settings.context.title": "コンテキスト",
-  "settings.terminal.title": "ターミナル",
-  "settings.prompts.title": "プロンプト",
+
   "settings.experimental.title": "実験的機能",
   "settings.language.title": "言語",
   "settings.aboutKiloCode.title": "Kilo Codeについて",
@@ -985,9 +984,7 @@ export const dict = {
 
   "common.add": "追加",
   "common.choose": "選択…",
-  "settings.notImplemented": "このセクションはまだ実装されていません。",
-  "settings.notImplemented.description":
-    "選択した設定カテゴリに関連する設定オプションと説明テキストが含まれる予定です。",
+
   "settings.autocomplete.autoTrigger.title": "自動インライン補完を有効にする",
   "settings.autocomplete.autoTrigger.description": "入力時にインライン補完の提案を自動的に表示",
   "settings.autocomplete.smartKeybinding.title": "スマートインラインタスクキーバインドを有効にする",
@@ -1132,7 +1129,7 @@ export const dict = {
     "カスタムコマンドが設定されていません。opencode.json にコマンドを追加するとここに表示されます。",
   "settings.agentBehaviour.workflows.detail.description": "説明",
   "settings.agentBehaviour.workflows.detail.template": "テンプレート",
-  "settings.agentBehaviour.notImplemented": "まだ実装されていません。",
+
   "settings.autoApprove.description":
     "ツールの実行許可を定義します。ほとんどのツールはデフォルトで「許可」されます。doom_loop と external_directory はデフォルトで「確認」になります。",
   "settings.autoApprove.level.allow": "許可",
@@ -1185,7 +1182,8 @@ export const dict = {
   "settings.providers.defaultModel.title": "デフォルトモデル",
   "settings.providers.defaultModel.description": "会話のプライマリモデル",
   "settings.providers.smallModel.title": "小型モデル",
-  "settings.providers.smallModel.description": "タイトル生成やその他の高速タスク用の軽量モデル",
+  "settings.providers.smallModel.description":
+    "タイトル生成、コミットメッセージ生成、プロンプト改善、およびその他の高速タスク用の軽量モデル",
   "settings.providers.disabled": "無効化されたプロバイダー",
   "settings.providers.disabled.description": "プロバイダーリストから非表示にするプロバイダー",
   "settings.providers.enabled": "有効化されたプロバイダー（ホワイトリスト）",

@@ -443,6 +443,13 @@ export namespace SessionProcessor {
               })
             }
           }
+          // kilocode_change start — guard empty tool-calls (#7756)
+          const empty = input.assistantMessage.finish === "tool-calls" && !p.some((part) => part.type === "tool")
+          if (empty) {
+            log.warn("empty tool-calls", { messageID: input.assistantMessage.id })
+            input.assistantMessage.finish = "stop"
+          }
+          // kilocode_change end
           input.assistantMessage.time.completed = Date.now()
           await Session.updateMessage(input.assistantMessage)
           if (needsCompaction) return "compact"

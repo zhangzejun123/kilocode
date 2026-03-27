@@ -911,8 +911,7 @@ export const dict = {
   "settings.autocomplete.title": "Otomatik Tamamlama",
   "settings.notifications.title": "Bildirimler",
   "settings.context.title": "Bağlam",
-  "settings.terminal.title": "Terminal",
-  "settings.prompts.title": "Komutlar",
+
   "settings.experimental.title": "Deneysel",
   "settings.language.title": "Dil",
   "settings.aboutKiloCode.title": "Kilo Code Hakkında",
@@ -988,10 +987,6 @@ export const dict = {
 
   "common.add": "Ekle",
   "common.choose": "Seç…",
-
-  "settings.notImplemented": "Bu bölüm henüz uygulanmadı.",
-  "settings.notImplemented.description":
-    "Seçilen ayar kategorisiyle ilgili yapılandırma seçenekleri ve açıklayıcı metin içerecek. Yeniden uygulama sırasında gerçek kontrolleri bağlamadan önce düzen, boşluk, kaydırma davranışı ve gezinme durumunu doğrulamak için bu alanı kullanın.",
 
   "settings.autocomplete.autoTrigger.title": "Otomatik satır içi tamamlamaları etkinleştir",
   "settings.autocomplete.autoTrigger.description": "Yazarken satır içi tamamlama önerilerini otomatik göster",
@@ -1117,7 +1112,6 @@ export const dict = {
     "Yapılandırılmış özel komut yok. Burada görmek için opencode.json dosyasına komutlar ekleyin.",
   "settings.agentBehaviour.workflows.detail.description": "Açıklama",
   "settings.agentBehaviour.workflows.detail.template": "Şablon",
-  "settings.agentBehaviour.notImplemented": "Henüz uygulanmadı.",
 
   "settings.autoApprove.description":
     "Araçların nasıl çalıştırılacağını tanımlayın. Çoğu araç varsayılan olarak İzin Ver'dir. doom_loop ve external_directory varsayılan olarak Sor'dur.",
@@ -1176,7 +1170,8 @@ export const dict = {
   "settings.providers.defaultModel.title": "Varsayılan Model",
   "settings.providers.defaultModel.description": "Sohbetler için birincil model",
   "settings.providers.smallModel.title": "Küçük Model",
-  "settings.providers.smallModel.description": "Başlık oluşturma ve diğer hızlı görevler için hafif model",
+  "settings.providers.smallModel.description":
+    "Başlık oluşturma, commit mesajı oluşturma, komut istemi iyileştirme ve diğer hızlı görevler için hafif model",
   "settings.providers.modeModels": "Mod Başına Model",
   "settings.providers.modeModels.description":
     "Belirli modlar için varsayılan modeli geçersiz kılın. Ayarlanmadıysa genel varsayılan model kullanılır.",
