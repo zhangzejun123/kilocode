@@ -1,4 +1,4 @@
-import { createStore } from "solid-js/store"
+import { createStore, unwrap } from "solid-js/store"
 import { createSimpleContext } from "./helper"
 import type { PromptInfo } from "../component/prompt/history"
 
@@ -42,7 +42,7 @@ export const { use: useRoute, provider: RouteProvider } = createSimpleContext({
       },
       navigate(route: Route) {
         console.log("navigate", route)
-        previous = { ...store } // kilocode_change
+        previous = structuredClone(unwrap(store)) // kilocode_change
         setStore(route)
       },
       // kilocode_change start

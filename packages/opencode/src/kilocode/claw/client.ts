@@ -56,15 +56,17 @@ function applyBunPatches() {
   patched = true
 
   const orig = Error.captureStackTrace
-  Error.captureStackTrace = function safe(target: any, ctor?: Function) {
-    try {
-      return orig.call(Error, target, ctor)
-    } catch {
-      // Bun throws when target is not a real Error (e.g. follow-redirects
-      // CustomError which has Error.prototype in its chain but is not
-      // constructed via `new Error()`). Silently skip.
-    }
-  } as typeof Error.captureStackTrace
+  if (orig) {
+    Error.captureStackTrace = function safe(target: any, ctor?: Function) {
+      try {
+        return orig.call(Error, target, ctor)
+      } catch {
+        // Bun throws when target is not a real Error (e.g. follow-redirects
+        // CustomError which has Error.prototype in its chain but is not
+        // constructed via `new Error()`). Silently skip.
+      }
+    } as typeof Error.captureStackTrace
+  }
 
   try {
     const net = require("net")

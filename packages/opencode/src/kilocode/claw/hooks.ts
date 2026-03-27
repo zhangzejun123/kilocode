@@ -53,11 +53,19 @@ export function createClawChat(sdk: any) {
   const [error, setError] = createSignal<string | null>(null)
   const [loading, setLoading] = createSignal(true)
 
+  const MAX_MESSAGES = 500
   let chat: ClawChatClient | null = null
 
-  const send = async (text: string) => {
-    if (!chat) return
-    await chat.send(text)
+  const send = async (text: string): Promise<boolean> => {
+    if (!chat) return false
+    try {
+      await chat.send(text)
+      return true
+    } catch (err: any) {
+      log.error("send failed", { error: err?.message ?? String(err) })
+      setError("Failed to send message")
+      return false
+    }
   }
 
   onMount(async () => {
@@ -98,14 +106,20 @@ export function createClawChat(sdk: any) {
 
       // Subscribe to new messages
       const unsub = chat.onMessage((msg) => {
-        setMessages((prev) => [...prev, msg])
+        setMessages((prev) => {
+          const next = [...prev, msg]
+          return next.length > MAX_MESSAGES ? next.slice(-MAX_MESSAGES) : next
+        })
       })
 
       // Subscribe to message updates (bot streams token-by-token via message.updated)
       const unsubUpdated = chat.onMessageUpdated((msg) => {
         setMessages((prev) => {
           const idx = prev.findIndex((m) => m.id === msg.id)
-          if (idx === -1) return [...prev, msg]
+          if (idx === -1) {
+            const next = [...prev, msg]
+            return next.length > MAX_MESSAGES ? next.slice(-MAX_MESSAGES) : next
+          }
           const next = [...prev]
           next[idx] = msg
           return next

@@ -64,7 +64,7 @@ export function ClawChat(props: {
   loading: boolean
   error: string | null
   disabled: boolean
-  onSend: (text: string) => void
+  onSend: (text: string) => Promise<boolean>
 }) {
   const { theme } = useTheme()
   const renderer = useRenderer()
@@ -82,13 +82,13 @@ export function ClawChat(props: {
     return ""
   })
 
-  const submit = () => {
+  const submit = async () => {
     if (!input) return
     const text = input.plainText.trim()
     if (!text) return
     if (!active()) return
-    props.onSend(text)
-    input.clear()
+    const ok = await props.onSend(text)
+    if (ok) input.clear()
   }
 
   createEffect(() => {
