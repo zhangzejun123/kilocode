@@ -97,13 +97,41 @@ greet('World');
 {% tabs %}
 {% tab label="VSCode" %}
 
-Every tool use requires your explicit approval via the **Permission Dock** floating UI in the chat panel. For each tool call you can:
+Every tool use is subject to a permission check. The default action for any tool with no matching rule in your config is **`ask`** — meaning Kilo will pause and prompt you before executing it.
 
-- **Approve** — execute the tool once
-- **Approve Always** — add this tool/pattern to your config so future calls are auto-approved
-- **Deny** — decline the proposed tool call
+**Default permissions by tool:**
 
-You can also toggle **Auto-approve** for all tools for the current session using `Ctrl+Alt+A` / `Cmd+Alt+A`.
+| Tool(s)                                      | Default                                          |
+| :------------------------------------------- | :----------------------------------------------- |
+| `read`, `glob`, `grep`, `list`               | `ask`                                            |
+| `edit`, `write`, `multiedit`, `apply_patch`  | `ask`                                            |
+| `bash`                                       | `ask` (per-command)                              |
+| `external_directory`                         | `ask` (when accessing paths outside the project) |
+| `task`                                       | `ask`                                            |
+| `webfetch`, `websearch`, `codesearch`        | `ask`                                            |
+| `todowrite`, `todoread`, `question`, `skill` | `ask`                                            |
+
+No tools are auto-approved out of the box. You must explicitly grant `allow` in your config, or approve them at runtime.
+
+**At runtime**, the **Permission Dock** floating UI in the chat panel shows each pending approval. For each tool call you can:
+
+- **Approve once** — execute this call only
+- **Approve always** — save an `allow` rule to your config so future matching calls are auto-approved
+- **Deny** — cancel the tool call
+
+To pre-configure permissions in your config file:
+
+```json
+{
+  "permission": {
+    "read": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "edit": "ask",
+    "bash": "ask"
+  }
+}
+```
 
 This safety mechanism ensures you maintain control over which files are modified, what commands are executed, and how your codebase is changed.
 
