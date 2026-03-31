@@ -1629,7 +1629,6 @@ export const SessionProvider: ParentComponent = (props) => {
     const id = currentSessionID()
     if (!id) return []
     const family = sessionFamily(id)
-    if (family.size <= 1) return []
 
     // Build label map: child sessionID → label from the parent's task tool input
     const labels = new Map<string, string>()
