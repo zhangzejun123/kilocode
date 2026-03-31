@@ -169,6 +169,8 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       const pending = reviewDrafts.get(key) ?? []
       setText(draft)
       setReviewComments(pending)
+      setEnhancing(false)
+      preEnhanceText = null
       history.reset()
       if (textareaRef) {
         textareaRef.value = draft
@@ -314,7 +316,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
 
     if (message.type === "enhancePromptResult") {
       const result = message as import("../../types/messages").EnhancePromptResultMessage
-      if (result.requestId === `enhance-${enhanceCounter}`) {
+      if (result.requestId === `enhance-${sessionKey()}-${enhanceCounter}`) {
         setText(result.text)
         setEnhancing(false)
         if (textareaRef) {
@@ -327,7 +329,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
 
     if (message.type === "enhancePromptError") {
       const result = message as import("../../types/messages").EnhancePromptErrorMessage
-      if (result.requestId === `enhance-${enhanceCounter}`) {
+      if (result.requestId === `enhance-${sessionKey()}-${enhanceCounter}`) {
         setEnhancing(false)
       }
     }
@@ -482,7 +484,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       session.abort()
       return
     }
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
       e.preventDefault()
       handleSend()
     }
@@ -506,7 +508,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     preEnhanceText = text()
     enhanceCounter++
     setEnhancing(true)
-    vscode.postMessage({ type: "enhancePrompt", text: draft, requestId: `enhance-${enhanceCounter}` })
+    vscode.postMessage({ type: "enhancePrompt", text: draft, requestId: `enhance-${sessionKey()}-${enhanceCounter}` })
   }
 
   const handleSend = () => {

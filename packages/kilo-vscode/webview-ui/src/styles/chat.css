@@ -174,6 +174,101 @@
 /* New Task Button */
 .new-task-button-wrapper {
   padding: 8px 12px 0;
+  container-type: inline-size;
+}
+
+.session-actions-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+/* All direct children share extra space equally, but start from their content size */
+.session-actions-row > * {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Tooltip wrappers fill their flex slot, buttons fill the tooltip wrapper */
+.session-actions-row > [data-component="tooltip-trigger"] {
+  display: flex;
+}
+
+.session-actions-row > [data-component="tooltip-trigger"] > [data-component="button"] {
+  flex: 1;
+}
+
+/* Diff wrapper also stretches evenly (same flex as buttons) */
+.session-diff-wrapper {
+  display: flex !important;
+}
+
+/* Diff stats badge — fills its flex slot, content centered */
+.session-diff-badge {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--vscode-descriptionForeground);
+  font-family: var(--vscode-editor-font-family), monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+}
+
+.session-diff-badge--empty {
+  opacity: 0.5;
+}
+
+.session-diff-badge:hover {
+  background: var(--vscode-toolbar-hoverBackground);
+}
+
+.session-diff-badge [data-component="icon"] {
+  opacity: 0.7;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.session-diff-add {
+  color: #34d399;
+}
+
+.session-diff-del {
+  color: #f87171;
+}
+
+/* Collapse diff stats to icon-only when truly narrow */
+@container (max-width: 300px) {
+  .session-diff-add,
+  .session-diff-del {
+    display: none;
+  }
+
+  .session-diff-badge {
+    padding: 4px 6px;
+    overflow: hidden;
+  }
+
+  /* Dot indicator on the icon when collapsed and there are changes */
+  .session-diff-badge--has-changes [data-component="icon"]::after {
+    content: "";
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #34d399;
+  }
 }
 
 /* ============================================
@@ -422,6 +517,28 @@
   white-space: nowrap;
   flex: 1;
   min-width: 0;
+}
+
+.show-history-btn {
+  appearance: none;
+  border: 1px solid var(--vscode-button-secondaryBorder, var(--vscode-contrastBorder, transparent));
+  border-radius: 4px;
+  background: var(--vscode-button-secondaryBackground, transparent);
+  color: var(--vscode-button-secondaryForeground, var(--vscode-foreground));
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 5px 10px;
+  margin-top: 4px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.show-history-btn:hover {
+  background: var(--vscode-button-secondaryHoverBackground, var(--vscode-list-hoverBackground));
 }
 
 .recent-session-date {
@@ -2083,8 +2200,17 @@
   opacity: 0.7;
 }
 
+/* Session List (inside History View) */
+.session-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 /* Session List Items */
-.session-list [data-slot="list-item-title"] {
+.session-list [data-slot="list-item-title"],
+.cloud-session-list [data-slot="list-item-title"] {
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -2093,7 +2219,8 @@
   text-align: left;
 }
 
-.session-list [data-slot="list-item-description"] {
+.session-list [data-slot="list-item-description"],
+.cloud-session-list [data-slot="list-item-description"] {
   flex-shrink: 0;
   margin-left: 8px;
   font-size: 12px;
@@ -2102,7 +2229,12 @@
 }
 
 body.vscode-light .session-list [data-slot="list-item"][data-active="true"] [data-slot="list-item-description"],
-body.vscode-light .session-list [data-slot="list-item"][data-selected="true"] [data-slot="list-item-description"] {
+body.vscode-light .session-list [data-slot="list-item"][data-selected="true"] [data-slot="list-item-description"],
+body.vscode-light .cloud-session-list [data-slot="list-item"][data-active="true"] [data-slot="list-item-description"],
+body.vscode-light
+  .cloud-session-list
+  [data-slot="list-item"][data-selected="true"]
+  [data-slot="list-item-description"] {
   color: var(--text-on-interactive-base, white);
 }
 
@@ -2131,25 +2263,85 @@ body.vscode-light
   opacity: 1;
 }
 
-/* Cloud Session List */
-.cloud-session-list {
+/* History View (unified Local + Cloud tabs) */
+.history-view {
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
 }
 
-.session-list-header,
-.cloud-session-filters {
+.history-view-header {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   padding: 4px 8px;
   min-height: 40px;
 }
 
-.cloud-session-filters {
+.history-view-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.history-tab-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--vscode-foreground);
+  opacity: 0.6;
+  transition:
+    opacity 0.1s,
+    background 0.1s;
+  white-space: nowrap;
+}
+
+.history-tab-btn:hover {
+  opacity: 1;
+  background: var(--vscode-toolbar-hoverBackground, rgba(128, 128, 128, 0.1));
+}
+
+.history-tab-btn--active {
+  opacity: 1;
+  background: var(--vscode-toolbar-activeBackground, rgba(128, 128, 128, 0.2));
+  font-weight: 600;
+}
+
+.history-import-btn {
+  flex-shrink: 0;
+}
+
+.history-view-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Cloud Session List (inside History View) */
+.cloud-session-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Make the list search wrapper wrap so the repo filter appears below search */
+.cloud-session-list [data-slot="list-search-wrapper"] {
+  flex-wrap: wrap;
+}
+
+.cloud-session-repo-filter {
+  width: 100%;
+  padding: 4px 10px 2px;
+
   [data-component="checkbox"] {
     gap: 8px;
 
@@ -2158,13 +2350,6 @@ body.vscode-light
       margin-inline-end: 0;
     }
   }
-}
-
-.cloud-session-filters-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
 }
 
 [data-component="input"][data-variant="normal"] [data-slot="input-wrapper"]:focus-within:not(:has([data-readonly])) {
@@ -2179,6 +2364,23 @@ body.vscode-light
   display: flex;
   justify-content: center;
   padding: 8px;
+}
+
+.cloud-session-load-more-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--vscode-foreground);
+  opacity: 0.6;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.cloud-session-load-more-btn:hover {
+  opacity: 1;
+  background: var(--vscode-toolbar-hoverBackground, rgba(128, 128, 128, 0.1));
 }
 
 /* ============================================

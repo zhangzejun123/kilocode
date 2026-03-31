@@ -56,10 +56,21 @@ export function activate(context: vscode.ExtensionContext) {
     }),
   )
 
+  // Ensure Agent Manager keybindings work when a VS Code terminal has focus.
+  // The terminal intercepts all keystrokes unless the command is listed in
+  // terminal.integrated.commandsToSkipShell, which only contains built-in
+  // commands by default.
+  ensureCommandsSkipShell(["kilo-code.new.agentManagerOpen", "kilo-code.new.agentManager.showTerminal"])
+
   // Create Agent Manager provider for editor panel
   const agentManagerHost = new VscodeHost(context.extensionUri, connectionService, context)
   const agentManagerProvider = new AgentManagerProvider(agentManagerHost, connectionService)
   context.subscriptions.push(agentManagerProvider)
+
+  // Wire "Continue in Worktree" from sidebar → Agent Manager
+  provider.setContinueInWorktreeHandler((sessionId, progress) =>
+    agentManagerProvider.continueFromSidebar(sessionId, progress),
+  )
 
   // Register serializer so Agent Manager restores when VS Code restarts
   context.subscriptions.push(
@@ -79,6 +90,9 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerWebviewPanelSerializer("kilo-code.new.TabPanel", {
       deserializeWebviewPanel(panel: vscode.WebviewPanel) {
         const tabProvider = new KiloProvider(context.extensionUri, connectionService, context)
+        tabProvider.setContinueInWorktreeHandler((sessionId, progress) =>
+          agentManagerProvider.continueFromSidebar(sessionId, progress),
+        )
         tabProvider.resolveWebviewPanel(panel)
         panel.onDidDispose(
           () => {
@@ -149,14 +163,11 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("kilo-code.new.agentManagerOpen", () => {
       agentManagerProvider.openPanel()
     }),
-    vscode.commands.registerCommand("kilo-code.new.marketplaceButtonClicked", () => {
-      settingsEditorProvider.openPanel("marketplace")
+    vscode.commands.registerCommand("kilo-code.new.marketplaceButtonClicked", (directory?: string) => {
+      settingsEditorProvider.openPanel("marketplace", undefined, directory)
     }),
     vscode.commands.registerCommand("kilo-code.new.historyButtonClicked", () => {
       provider.postMessage({ type: "action", action: "historyButtonClicked" })
-    }),
-    vscode.commands.registerCommand("kilo-code.new.cloudHistoryButtonClicked", () => {
-      provider.postMessage({ type: "action", action: "cloudHistoryButtonClicked" })
     }),
     vscode.commands.registerCommand("kilo-code.new.cycleAgentMode", () => {
       provider.postMessage({ type: "action", action: "cycleAgentMode" })
@@ -174,7 +185,7 @@ export function activate(context: vscode.ExtensionContext) {
     }),
     // legacy-migration start
     vscode.commands.registerCommand("kilo-code.new.openMigrationWizard", () => {
-      provider.postMessage({ type: "navigate", view: "migration" })
+      provider.postMessage({ type: "migrationState", needed: true })
     }),
     // legacy-migration end
     vscode.commands.registerCommand("kilo-code.new.generateTerminalCommand", async () => {
@@ -188,7 +199,7 @@ export function activate(context: vscode.ExtensionContext) {
       provider.postMessage({ type: "triggerTask", text: `Generate a terminal command: ${input}` })
     }),
     vscode.commands.registerCommand("kilo-code.new.openInTab", () => {
-      return openKiloInNewTab(context, connectionService)
+      return openKiloInNewTab(context, connectionService, agentManagerProvider)
     }),
     vscode.commands.registerCommand("kilo-code.new.showChanges", () => {
       diffViewerProvider.openPanel()
@@ -315,7 +326,11 @@ export function deactivate() {
   TelemetryProxy.getInstance().shutdown()
 }
 
-async function openKiloInNewTab(context: vscode.ExtensionContext, connectionService: KiloConnectionService) {
+async function openKiloInNewTab(
+  context: vscode.ExtensionContext,
+  connectionService: KiloConnectionService,
+  agentManagerProvider: AgentManagerProvider,
+) {
   const lastCol = Math.max(...vscode.window.visibleTextEditors.map((e) => e.viewColumn || 0), 0)
   const hasVisibleEditors = vscode.window.visibleTextEditors.length > 0
 
@@ -337,6 +352,9 @@ async function openKiloInNewTab(context: vscode.ExtensionContext, connectionServ
   }
 
   const tabProvider = new KiloProvider(context.extensionUri, connectionService, context)
+  tabProvider.setContinueInWorktreeHandler((sessionId, progress) =>
+    agentManagerProvider.continueFromSidebar(sessionId, progress),
+  )
   tabProvider.resolveWebviewPanel(panel)
 
   // Wait for the new panel to become active before locking the editor group.
@@ -352,6 +370,26 @@ async function openKiloInNewTab(context: vscode.ExtensionContext, connectionServ
     null,
     context.subscriptions,
   )
+}
+
+/**
+ * Add extension commands to terminal.integrated.commandsToSkipShell so they
+ * work when a VS Code terminal has focus. The setting only ships with built-in
+ * commands; extension commands must be added explicitly.
+ */
+function ensureCommandsSkipShell(commands: string[]): void {
+  const config = vscode.workspace.getConfiguration("terminal.integrated")
+  const info = config.inspect<string[]>("commandsToSkipShell")
+  // Update whichever scope already carries an override so we don't
+  // shadow workspace settings or leak workspace values into global.
+  const [existing, target] = info?.workspaceFolderValue
+    ? [info.workspaceFolderValue, vscode.ConfigurationTarget.WorkspaceFolder]
+    : info?.workspaceValue
+      ? [info.workspaceValue, vscode.ConfigurationTarget.Workspace]
+      : [info?.globalValue ?? [], vscode.ConfigurationTarget.Global]
+  const missing = commands.filter((cmd) => !existing.includes(cmd))
+  if (missing.length === 0) return
+  config.update("commandsToSkipShell", [...existing, ...missing], target)
 }
 
 function waitForWebviewPanelToBeActive(panel: vscode.WebviewPanel): Promise<void> {
