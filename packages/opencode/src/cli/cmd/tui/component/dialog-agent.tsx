@@ -13,8 +13,7 @@ export function DialogAgent() {
         value: item.name,
         title: item.displayName ?? item.name, // kilocode_change
         description:
-          [item.deprecated && "deprecated", item.native && "native", item.description].filter(Boolean).join(", ") ||
-          undefined,
+          [item.deprecated && "deprecated", item.native && "native"].filter(Boolean).join(", ") || item.description,
       }
     }),
   )

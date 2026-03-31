@@ -265,7 +265,7 @@ export namespace Agent {
       },
       orchestrator: {
         name: "orchestrator",
-        description: "Deprecated. Coordinate complex tasks by delegating to specialized agents in parallel.",
+        description: "Coordinate complex tasks by delegating to specialized agents in parallel.",
         prompt: PROMPT_ORCHESTRATOR,
         options: {},
         permission: PermissionNext.merge(
