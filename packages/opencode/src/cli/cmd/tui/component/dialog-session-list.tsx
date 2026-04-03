@@ -2,7 +2,6 @@ import { useDialog } from "@tui/ui/dialog"
 import { DialogSelect } from "@tui/ui/dialog-select"
 import { useRoute } from "@tui/context/route"
 import { useSync } from "@tui/context/sync"
-import path from "path"
 import { createMemo, createSignal, createResource, onMount } from "solid-js"
 import { Locale } from "@/util/locale"
 import { useKeybind } from "../context/keybind"
@@ -70,10 +69,8 @@ export function DialogSessionList() {
         const isDeleting = toDelete() === x.id
         const status = sync.data.session_status?.[x.id]
         const isWorking = status?.type === "busy"
-        const root = all ? path.basename(x.directory) || x.directory : "" // kilocode_change
-        const suffix = root ? ` [${root}]` : ""
         return {
-          title: isDeleting ? `Press ${keybind.print("session_delete")} again to confirm` : x.title + suffix, // kilocode_change
+          title: isDeleting ? `Press ${keybind.print("session_delete")} again to confirm` : x.title,
           bg: isDeleting ? theme.error : undefined,
           value: x.id,
           category,
