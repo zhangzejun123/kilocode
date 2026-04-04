@@ -11,6 +11,9 @@ import { useKeybind } from "../../context/keybind"
 import { useDirectory } from "../../context/directory"
 import { useKV } from "../../context/kv"
 import { TodoItem } from "../../component/todo-item"
+// kilocode_change start
+import { formatCount, getUsage } from "./usage"
+// kilocode_change end
 
 export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const sync = useSync()
@@ -59,6 +62,17 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
       percentage: model?.limit.context ? Math.round((total / model.limit.context) * 100) : null,
     }
   })
+
+  // kilocode_change start
+  const usage = createMemo(() => {
+    const total = getUsage(messages())
+    return {
+      input: formatCount(total.input),
+      output: formatCount(total.output),
+      cached: formatCount(total.cached),
+    }
+  })
+  // kilocode_change end
 
   const directory = useDirectory()
   const kv = useKV()
@@ -109,6 +123,25 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
               <text fg={theme.textMuted}>{context()?.percentage ?? 0}% used</text>
               <text fg={theme.textMuted}>{cost()} spent</text>
             </box>
+            {/* kilocode_change start */}
+            <box>
+              <text fg={theme.text}>
+                <b>Token Usage</b>
+              </text>
+              <box flexDirection="row" justifyContent="space-between">
+                <text fg={theme.textMuted}>Input</text>
+                <text fg={theme.textMuted}>{usage().input}</text>
+              </box>
+              <box flexDirection="row" justifyContent="space-between">
+                <text fg={theme.textMuted}>Output</text>
+                <text fg={theme.textMuted}>{usage().output}</text>
+              </box>
+              <box flexDirection="row" justifyContent="space-between">
+                <text fg={theme.textMuted}>Cached</text>
+                <text fg={theme.textMuted}>{usage().cached}</text>
+              </box>
+            </box>
+            {/* kilocode_change end */}
             <Show when={mcpEntries().length > 0}>
               <box>
                 <box
