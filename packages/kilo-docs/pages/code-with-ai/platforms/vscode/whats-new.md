@@ -44,8 +44,9 @@ The context progress graph will be [added soon](https://github.com/Kilo-Org/kilo
 We are working to improve the experience in closely managing an agent. Identified improvements and progress are being tracked in a [GitHub issue](https://github.com/Kilo-Org/kilocode/issues/8415).
 
 In the meantime we suggest exploring:
-* [Auto-approval](https://kilo.ai/docs/getting-started/settings/auto-approving-actions) of actions: to control what the agent is allowed to do, and require approval when desired
-* [Agents](https://kilo.ai/docs/code-with-ai/agents/using-agents) (previously known as Modes): Managing the agent types in the extension, adding new ones, and setting the default models for each.
+
+- [Auto-approval](https://kilo.ai/docs/getting-started/settings/auto-approving-actions) of actions: to control what the agent is allowed to do, and require approval when desired
+- [Agents](https://kilo.ai/docs/code-with-ai/agents/using-agents) (previously known as Modes): Managing the agent types in the extension, adding new ones, and setting the default models for each.
 
 ### How can I control which models each agent/mode uses?
 
@@ -60,6 +61,10 @@ The Agent Manager also includes a built-in diff reviewer that shows every change
 
 You can now trigger local AI-powered code reviews directly by using two commands: **`/local-review`** to review all changes on your current branch vs the base branch, and **`/local-review-uncommitted`** to review staged and unstaged changes.
 See the [Code Reviews](/docs/automate/code-reviews/overview) documentation for the full setup and options.
+
+### Where did my custom profiles go?
+
+In the new extension we simplified the model selection by removing the profile layer. To keep models easily reachable you don't need a profile — you can just star them in the model selector to mark them as favorites.
 
 ### Where did orchestrator mode go?
 
