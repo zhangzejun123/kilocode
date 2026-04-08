@@ -1004,7 +1004,15 @@ const AgentBehaviourTab: Component = () => {
               >
                 {path}
               </span>
-              <IconButton size="small" variant="ghost" icon="close" onClick={() => removeInstruction(index())} />
+              <div style={{ display: "flex", "align-items": "center", gap: "4px" }}>
+                <IconButton
+                  size="small"
+                  variant="ghost"
+                  icon="pencil-line"
+                  onClick={() => vscode.postMessage({ type: "openFile", filePath: path })}
+                />
+                <IconButton size="small" variant="ghost" icon="close" onClick={() => removeInstruction(index())} />
+              </div>
             </div>
           )}
         </For>

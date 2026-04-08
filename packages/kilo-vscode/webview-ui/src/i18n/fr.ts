@@ -974,6 +974,10 @@ export const dict = {
   "session.status.retrying": "Nouvelle tentative (essai {{ attempt }})… {{ message }}",
   "session.status.working": "En cours…",
 
+  "ui.sessionTurn.cancel": "Annuler",
+  "ui.sessionTurn.status.thinking": "Réflexion...",
+  "ui.sessionTurn.status.consideringNextSteps": "Envisage les prochaines étapes...",
+
   "dialog.model.noProviders": "Aucun fournisseur",
 
   "prompt.placeholder.connecting": "Connexion au serveur...",
@@ -1397,4 +1401,5 @@ export const dict = {
   "notifications.action.next": "Suivant",
   "notifications.action.close": "Fermer",
   "notifications.action.tryModel": "Essayer {{model}}",
+  "notifications.action.tryModelGeneric": "Essayer le modèle",
 }

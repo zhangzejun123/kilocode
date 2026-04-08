@@ -949,6 +949,10 @@ export const dict = {
   "session.status.retrying": "正在重試（第 {{ attempt }} 次）… {{ message }}",
   "session.status.working": "處理中…",
 
+  "ui.sessionTurn.cancel": "取消",
+  "ui.sessionTurn.status.thinking": "思考中...",
+  "ui.sessionTurn.status.consideringNextSteps": "正在考慮下一步...",
+
   "dialog.model.noProviders": "沒有供應商",
 
   "prompt.placeholder.connecting": "正在連線至伺服器...",
@@ -1326,4 +1330,5 @@ export const dict = {
   "notifications.action.next": "下一個",
   "notifications.action.close": "關閉",
   "notifications.action.tryModel": "嘗試 {{model}}",
+  "notifications.action.tryModelGeneric": "嘗試模型",
 } satisfies Partial<Record<Keys, string>>

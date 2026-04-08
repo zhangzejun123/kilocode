@@ -26,6 +26,15 @@ export interface Worktree {
   groupId?: string
   /** User-provided display name for the worktree. */
   label?: string
+  /** Cached PR number for instant badge display on reload. */
+  prNumber?: number
+  /** Cached PR URL for instant badge display on reload. */
+  prUrl?: string
+  /** Cached PR state for correct badge color on reload (open/merged/closed/draft). */
+  prState?: string
+  /** Original branch created with the worktree, used for cleanup on deletion.
+   *  Set automatically when `branch` is updated via live sync. */
+  originalBranch?: string
 }
 
 /**
@@ -163,11 +172,31 @@ export class WorktreeStateManager {
     return wt
   }
 
+  updateWorktreeBranch(id: string, branch: string): boolean {
+    const wt = this.worktrees.get(id)
+    if (!wt || wt.branch === branch) return false
+    if (!wt.originalBranch) wt.originalBranch = wt.branch
+    this.log(`Updated worktree ${id} branch: ${wt.branch} → ${branch}`)
+    wt.branch = branch
+    void this.save()
+    return true
+  }
+
   updateWorktreeLabel(id: string, label: string): void {
     const wt = this.worktrees.get(id)
     if (!wt) return
     wt.label = label || undefined
     this.log(`Updated worktree ${id} label to "${label}"`)
+    void this.save()
+  }
+
+  updateWorktreePR(id: string, prNumber?: number, prUrl?: string, prState?: string): void {
+    const wt = this.worktrees.get(id)
+    if (!wt) return
+    if (wt.prNumber === prNumber && wt.prUrl === prUrl && wt.prState === prState) return
+    wt.prNumber = prNumber
+    wt.prUrl = prUrl
+    wt.prState = prState
     void this.save()
   }
 

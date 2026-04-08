@@ -963,6 +963,10 @@ export const dict = {
   "session.status.retrying": "Yeniden deneniyor (deneme {{ attempt }})… {{ message }}",
   "session.status.working": "Çalışıyor...",
 
+  "ui.sessionTurn.cancel": "İptal",
+  "ui.sessionTurn.status.thinking": "Düşünüyor...",
+  "ui.sessionTurn.status.consideringNextSteps": "Sonraki adımları değerlendiriyor...",
+
   "dialog.model.noProviders": "Sağlayıcı yok",
 
   "prompt.placeholder.connecting": "Sunucuya bağlanılıyor...",
@@ -1362,6 +1366,7 @@ export const dict = {
   "notifications.action.next": "Sonraki",
   "notifications.action.close": "Kapat",
   "notifications.action.tryModel": "Dene {{model}}",
+  "notifications.action.tryModelGeneric": "Modeli Dene",
   // Missing translations - English fallbacks until translated
   "profile.switchingAccount": "Hesap değiştiriliyor…",
   "settings.agentBehaviour.createMode": "Yeni Mod Oluştur",
@@ -1385,7 +1390,8 @@ export const dict = {
   "settings.agentBehaviour.editMode": "Modu Düzenle",
   "settings.agentBehaviour.editMode.back": "Listeye dön",
   "settings.agentBehaviour.editMode.description": "Açıklama",
-  "settings.agentBehaviour.editMode.native": "Yerleşik mod (salt okunur tanım)",
+  "settings.agentBehaviour.editMode.native":
+    "Bu yerleşik bir moddur. Temel tanımı değiştirilemez, ancak aşağıdan geçersiz kılmaları yapılandırabilirsiniz.",
   "settings.agentBehaviour.editMode.prompt": "Sistem İstemi",
   "settings.agentBehaviour.editMode.promptOverride": "Bu yerleşik mod için özel sistem istemi geçersiz kılma",
   "settings.agentBehaviour.editMode.save": "Tamam",

@@ -967,6 +967,10 @@ export const dict = {
   "session.status.retrying": "Ponovni pokušaj (pokušaj {{ attempt }})… {{ message }}",
   "session.status.working": "Radim…",
 
+  "ui.sessionTurn.cancel": "Otkaži",
+  "ui.sessionTurn.status.thinking": "Razmišljam...",
+  "ui.sessionTurn.status.consideringNextSteps": "Razmatram sljedeće korake...",
+
   "dialog.model.noProviders": "Nema pružatelja",
 
   "prompt.placeholder.connecting": "Povezivanje na server...",
@@ -1374,4 +1378,5 @@ export const dict = {
   "notifications.action.next": "Sljedeći",
   "notifications.action.close": "Zatvori",
   "notifications.action.tryModel": "Probaj {{model}}",
+  "notifications.action.tryModelGeneric": "Probaj model",
 }

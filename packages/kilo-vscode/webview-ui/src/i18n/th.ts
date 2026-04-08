@@ -955,6 +955,10 @@ export const dict = {
   "session.status.retrying": "กำลังลองใหม่ (ครั้งที่ {{ attempt }})… {{ message }}",
   "session.status.working": "กำลังทำงาน...",
 
+  "ui.sessionTurn.cancel": "ยกเลิก",
+  "ui.sessionTurn.status.thinking": "กำลังคิด...",
+  "ui.sessionTurn.status.consideringNextSteps": "กำลังพิจารณาขั้นตอนถัดไป...",
+
   "dialog.model.noProviders": "ไม่มีผู้ให้บริการ",
 
   "prompt.placeholder.connecting": "กำลังเชื่อมต่อกับเซิร์ฟเวอร์...",
@@ -1348,4 +1352,5 @@ export const dict = {
   "notifications.action.next": "ถัดไป",
   "notifications.action.close": "ปิด",
   "notifications.action.tryModel": "ลองใช้ {{model}}",
+  "notifications.action.tryModelGeneric": "ลองใช้โมเดล",
 }

@@ -960,6 +960,10 @@ export const dict = {
   "session.status.retrying": "Retrying (attempt {{ attempt }})… {{ message }}",
   "session.status.working": "Working...",
 
+  "ui.sessionTurn.cancel": "Cancel",
+  "ui.sessionTurn.status.thinking": "Thinking...",
+  "ui.sessionTurn.status.consideringNextSteps": "Considering next steps...",
+
   "dialog.model.noProviders": "No providers",
 
   "prompt.placeholder.connecting": "Connecting to server...",
@@ -1190,7 +1194,8 @@ export const dict = {
   "settings.agentBehaviour.editMode.prompt": "System Prompt",
   "settings.agentBehaviour.editMode.save": "Done",
   "settings.agentBehaviour.editMode.back": "Back to list",
-  "settings.agentBehaviour.editMode.native": "Built-in mode (read-only definition)",
+  "settings.agentBehaviour.editMode.native":
+    "This is a built-in mode. Its base definition cannot be changed, but you can configure overrides below.",
   "settings.agentBehaviour.editMode.promptOverride": "Custom prompt override for this built-in mode",
 
   "settings.autoApprove.description":
@@ -1375,4 +1380,5 @@ export const dict = {
   "notifications.action.next": "Next",
   "notifications.action.close": "Close",
   "notifications.action.tryModel": "Try {{model}}",
+  "notifications.action.tryModelGeneric": "Try Model",
 }
