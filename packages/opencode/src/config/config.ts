@@ -1260,6 +1260,7 @@ export namespace Config {
           baseURL: z.string().optional(),
           enterpriseUrl: z.string().optional().describe("GitHub Enterprise URL for copilot authentication"),
           setCacheKey: z.boolean().optional().describe("Enable promptCacheKey for this provider (default false)"),
+          // kilocode_change start
           timeout: z
             .union([
               z
@@ -1267,13 +1268,14 @@ export namespace Config {
                 .int()
                 .positive()
                 .describe(
-                  "Timeout in milliseconds for requests to this provider. Default is 300000 (5 minutes). Set to false to disable timeout.",
+                  "Timeout in milliseconds for requests to this provider. Default is 120000 (2 minutes). Set to false to disable timeout.",
                 ),
               z.literal(false).describe("Disable timeout for this provider entirely."),
+              // kilocode_change end
             ])
             .optional()
             .describe(
-              "Timeout in milliseconds for requests to this provider. Default is 300000 (5 minutes). Set to false to disable timeout.",
+              "Timeout in milliseconds for requests to this provider. Default is 120000 (2 minutes). Set to false to disable timeout.", // kilocode_change
             ),
         })
         .catchall(z.any())
