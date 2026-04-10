@@ -791,7 +791,7 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
                         </label>
                         <For each={m.variants}>
                           {(v, vi) => (
-                            <div style={{ display: "flex", gap: "6px", "align-items": "end", "flex-wrap": "wrap" }}>
+                            <div style={{ display: "flex", gap: "6px", "align-items": "start", "flex-wrap": "wrap" }}>
                               <div style={{ "min-width": "100px", flex: "1 1 80px" }}>
                                 <TextField
                                   label={language.t("provider.custom.models.variants.name.label")}
@@ -807,7 +807,6 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
                                   display: "flex",
                                   "flex-direction": "column",
                                   gap: "4px",
-                                  "padding-bottom": "6px",
                                   flex: "0 0 auto",
                                 }}
                               >
@@ -833,7 +832,6 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
                                   display: "flex",
                                   "flex-direction": "column",
                                   gap: "4px",
-                                  "padding-bottom": "6px",
                                   flex: "0 0 auto",
                                 }}
                               >
@@ -859,7 +857,6 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
                                   display: "flex",
                                   "flex-direction": "column",
                                   gap: "4px",
-                                  "padding-bottom": "6px",
                                   flex: "0 0 auto",
                                 }}
                               >
@@ -890,7 +887,7 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
                                 variant="ghost"
                                 onClick={() => removeVariant(i(), vi())}
                                 aria-label={language.t("provider.custom.models.variants.remove")}
-                                style={{ "margin-bottom": "6px" }}
+                                style={{ "margin-top": "20px" }}
                               />
                             </div>
                           )}
