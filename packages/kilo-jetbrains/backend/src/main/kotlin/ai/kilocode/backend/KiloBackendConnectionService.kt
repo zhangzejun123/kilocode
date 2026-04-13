@@ -1,7 +1,6 @@
 package ai.kilocode.backend
 
 import ai.kilocode.jetbrains.api.client.DefaultApi
-import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -52,12 +51,12 @@ data class SseEvent(val type: String, val data: String)
  */
 class KiloConnectionService(
     private val cs: CoroutineScope,
-    private val server: KiloBackendCliManager,
+    private val server: CliServer,
     private val onReconnect: () -> Unit,
+    private val log: KiloLog = IntellijLog(KiloConnectionService::class.java),
 ) {
 
     companion object {
-        private val LOG = Logger.getInstance(KiloConnectionService::class.java)
         private const val HEARTBEAT_TIMEOUT_MS = 15_000L
         private const val HEALTH_POLL_INTERVAL_MS = 10_000L
         private const val RECONNECT_DELAY_MS = 250L
@@ -81,6 +80,7 @@ class KiloConnectionService(
 
     private val source = AtomicReference<EventSource?>(null)
     private val lastEvent = AtomicLong(0L)
+    @Volatile private var disposed = false
     private var heartbeatJob: Job? = null
     private var healthJob: Job? = null
     private var processJob: Job? = null
@@ -101,11 +101,11 @@ class KiloConnectionService(
      * Called under [KiloBackendAppService]'s mutex.
      */
     suspend fun restart() {
-        LOG.info("restart: initiated — tearing down current connection")
+        log.info("restart: initiated — tearing down current connection")
         teardown()
-        LOG.info("restart: teardown complete — spawning new CLI process")
+        log.info("restart: teardown complete — spawning new CLI process")
         open()
-        LOG.info("restart: open() returned — CLI process started")
+        log.info("restart: open() returned — CLI process started")
     }
 
     /**
@@ -114,13 +114,13 @@ class KiloConnectionService(
      * Called under [KiloBackendAppService]'s mutex.
      */
     suspend fun reinstall() {
-        LOG.info("reinstall: initiated — tearing down current connection")
+        log.info("reinstall: initiated — tearing down current connection")
         teardown()
-        LOG.info("reinstall: teardown complete — setting forceExtract flag")
+        log.info("reinstall: teardown complete — setting forceExtract flag")
         server.forceExtract = true
-        LOG.info("reinstall: spawning new CLI process (binary will be re-extracted)")
+        log.info("reinstall: spawning new CLI process (binary will be re-extracted)")
         open()
-        LOG.info("reinstall: open() returned — CLI process started with fresh binary")
+        log.info("reinstall: open() returned — CLI process started with fresh binary")
     }
 
     /**
@@ -130,19 +130,19 @@ class KiloConnectionService(
      * cannot race with the SSE close or process kill.
      */
     private fun teardown() {
-        LOG.info("teardown: cancelling background jobs (reconnect, heartbeat, health, process)")
+        log.info("teardown: cancelling background jobs (reconnect, heartbeat, health, process)")
         reconnectJob?.cancel()
         heartbeatJob?.cancel()
         healthJob?.cancel()
         processJob?.cancel()
-        LOG.info("teardown: closing SSE event source")
+        log.info("teardown: closing SSE event source")
         source.getAndSet(null)?.cancel()
-        LOG.info("teardown: shutting down OkHttp clients")
+        log.info("teardown: shutting down OkHttp clients")
         close()
         setState(ConnectionState.Disconnected)
-        LOG.info("teardown: killing CLI process via ServerManager.stop()")
+        log.info("teardown: killing CLI process via ServerManager.stop()")
         server.stop()
-        LOG.info("teardown: complete")
+        log.info("teardown: complete")
     }
 
     private suspend fun open() {
@@ -155,12 +155,12 @@ class KiloConnectionService(
 
         val result = server.init()
 
-        if (result is KiloBackendCliManager.ServerState.Error) {
+        if (result is CliServer.State.Error) {
             setState(ConnectionState.Error(result.message))
             return
         }
 
-        val ready = result as KiloBackendCliManager.ServerState.Ready
+        val ready = result as CliServer.State.Ready
         port = ready.port
         password = ready.password
 
@@ -195,12 +195,12 @@ class KiloConnectionService(
                 .build()
         )
         source.set(factory.newEventSource(request, listener))
-        LOG.info("SSE: connecting to port $port")
+        log.info("SSE: connecting to port $port")
     }
 
     private val listener = object : EventSourceListener() {
         override fun onOpen(src: EventSource, response: Response) {
-            LOG.info("SSE: connected")
+            log.info("SSE: connected")
             setState(ConnectionState.Connected(port, password))
             lastEvent.set(System.currentTimeMillis())
         }
@@ -212,15 +212,15 @@ class KiloConnectionService(
         }
 
         override fun onClosed(src: EventSource) {
-            LOG.info("SSE: stream closed — scheduling reconnect")
+            log.info("SSE: stream closed — scheduling reconnect")
             scheduleReconnect()
         }
 
         override fun onFailure(src: EventSource, t: Throwable?, response: Response?) {
             if (t != null) {
-                LOG.warn("SSE: failure (${t.message}) — scheduling reconnect")
+                log.warn("SSE: failure (${t.message}) — scheduling reconnect")
             } else {
-                LOG.warn("SSE: failure (HTTP ${response?.code}) — scheduling reconnect")
+                log.warn("SSE: failure (HTTP ${response?.code}) — scheduling reconnect")
             }
             setState(ConnectionState.Error(t?.message ?: "SSE connection failed (HTTP ${response?.code})"))
             scheduleReconnect()
@@ -233,6 +233,7 @@ class KiloConnectionService(
      * goes through [KiloBackendAppService]'s mutex for a full restart.
      */
     private fun scheduleReconnect() {
+        if (disposed) return
         if (reconnectJob?.isActive == true) return
         reconnectJob = cs.launch {
             delay(RECONNECT_DELAY_MS)
@@ -241,14 +242,14 @@ class KiloConnectionService(
             val proc = server.process()
 
             if (proc?.isAlive == true) {
-                LOG.info("SSE: reconnecting (process alive)")
+                log.info("SSE: reconnecting (process alive)")
                 source.getAndSet(null)?.cancel()
                 setState(ConnectionState.Connecting)
                 startSse()
                 return@launch
             }
 
-            LOG.warn("CLI process not running — delegating full reconnect to AppService")
+            log.warn("CLI process not running — delegating full reconnect to AppService")
             onReconnect()
         }
     }
@@ -261,7 +262,7 @@ class KiloConnectionService(
                 if (_state.value !is ConnectionState.Connected) continue
                 val elapsed = System.currentTimeMillis() - lastEvent.get()
                 if (elapsed > HEARTBEAT_TIMEOUT_MS) {
-                    LOG.warn("SSE: heartbeat timeout (${elapsed}ms) — forcing reconnect")
+                    log.warn("SSE: heartbeat timeout (${elapsed}ms) — forcing reconnect")
                     source.getAndSet(null)?.cancel()
                     scheduleReconnect()
                 }
@@ -275,7 +276,7 @@ class KiloConnectionService(
             if (_state.value !is ConnectionState.Connected) continue
             val ok = checkHealth()
             if (!ok && _state.value is ConnectionState.Connected) {
-                LOG.warn("Health check failed — forcing SSE reconnect")
+                log.warn("Health check failed — forcing SSE reconnect")
                 source.getAndSet(null)?.cancel()
                 scheduleReconnect()
             }
@@ -290,7 +291,7 @@ class KiloConnectionService(
                 .build()
             http.newCall(req).execute().use { it.isSuccessful }
         } catch (e: Exception) {
-            LOG.info("Health check exception: ${e.message}")
+            log.info("Health check exception: ${e.message}")
             false
         }
     }
@@ -299,7 +300,7 @@ class KiloConnectionService(
         proc.waitFor()
         server.exited(proc)
         val code = proc.exitValue()
-        LOG.warn("CLI process exited with code $code")
+        log.warn("CLI process exited with code $code")
         source.getAndSet(null)?.cancel()
         setState(ConnectionState.Error("CLI process exited with code $code"))
         scheduleReconnect()
@@ -314,20 +315,22 @@ class KiloConnectionService(
     }
 
     private fun setState(next: ConnectionState) {
+        if (disposed) return
         _state.value = next
     }
 
-    private fun extractType(data: String): String =
+    internal fun extractType(data: String): String =
         TYPE_REGEX.find(data)?.groupValues?.get(1) ?: "unknown"
 
     fun dispose() {
+        disposed = true
         source.getAndSet(null)?.cancel()
         heartbeatJob?.cancel()
         healthJob?.cancel()
         processJob?.cancel()
         reconnectJob?.cancel()
         close()
-        setState(ConnectionState.Disconnected)
-        LOG.info("KiloConnectionService disposed")
+        _state.value = ConnectionState.Disconnected
+        log.info("KiloConnectionService disposed")
     }
 }

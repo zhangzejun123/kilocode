@@ -9,7 +9,6 @@ import ai.kilocode.jetbrains.api.model.KiloProfile200Response
 import ai.kilocode.rpc.dto.HealthDto
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -41,19 +40,35 @@ import java.util.concurrent.atomic.AtomicReference
  * Profile is optional — 401 (not logged in) is not an error.
  */
 @Service(Service.Level.APP)
-class KiloBackendAppService(private val cs: CoroutineScope) : Disposable {
+class KiloBackendAppService private constructor(
+    private val cs: CoroutineScope,
+    private val server: CliServer,
+    private val log: KiloLog,
+) : Disposable {
+
+    /** IntelliJ service injection entry point. */
+    constructor(cs: CoroutineScope) : this(
+        cs,
+        KiloBackendCliManager(),
+        IntellijLog(KiloBackendAppService::class.java),
+    )
 
     companion object {
-        private val LOG = Logger.getInstance(KiloBackendAppService::class.java)
         private const val MAX_RETRIES = 3
         private const val RETRY_DELAY_MS = 1000L
+
+        /** Test factory — no IntelliJ deps needed. */
+        internal fun create(
+            cs: CoroutineScope,
+            server: CliServer,
+            log: KiloLog,
+        ) = KiloBackendAppService(cs, server, log)
     }
 
     private val mutex = Mutex()
-    private val server = KiloBackendCliManager()
-    private val connection = KiloConnectionService(cs, server) {
+    private val connection = KiloConnectionService(cs, server, onReconnect = {
         cs.launch { reconnect() }
-    }
+    }, log = log)
 
     private var router: Job? = null
     private var loader: Job? = null
@@ -106,10 +121,10 @@ class KiloBackendAppService(private val cs: CoroutineScope) : Disposable {
         mutex.withLock {
             val current = _appState.value
             if (current is KiloAppState.Ready || current is KiloAppState.Connecting || current is KiloAppState.Loading) {
-                LOG.info("reconnect: already ${current::class.simpleName} — skipping")
+                log.info("reconnect: already ${current::class.simpleName} — skipping")
                 return
             }
-            LOG.info("reconnect: full restart under mutex")
+            log.info("reconnect: full restart under mutex")
             connection.restart()
         }
     }
@@ -140,7 +155,7 @@ class KiloBackendAppService(private val cs: CoroutineScope) : Disposable {
     private fun load() {
         loader?.cancel()
         loader = cs.launch {
-            LOG.info("Loading global data")
+            log.info("Loading global data")
             val progress = AtomicReference(LoadProgress())
             _appState.value = KiloAppState.Loading(progress.get())
 
@@ -186,12 +201,12 @@ class KiloBackendAppService(private val cs: CoroutineScope) : Disposable {
                         notifications = notifications,
                     )
                 )
-                LOG.info("Global data loaded — app is Ready")
+                log.info("Global data loaded — app is Ready")
                 ensureRouter()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                LOG.warn("Global data load failed: ${e.message}")
+                log.warn("Global data load failed: ${e.message}")
                 _appState.value = KiloAppState.Error(
                     message = "Failed to load required data",
                     errors = synchronized(errors) { errors.toList() },
@@ -205,10 +220,10 @@ class KiloBackendAppService(private val cs: CoroutineScope) : Disposable {
         return try {
             val response = client.kiloProfile()
             profile = response
-            LOG.info("Profile: ${response.profile.email}")
+            log.info("Profile: ${response.profile.email}")
             ProfileResult.LOADED
         } catch (e: Exception) {
-            LOG.info("Profile fetch skipped: ${e.message}")
+            log.info("Profile fetch skipped: ${e.message}")
             ProfileResult.NOT_LOGGED_IN
         }
     }
@@ -219,7 +234,7 @@ class KiloBackendAppService(private val cs: CoroutineScope) : Disposable {
         return try {
             FetchResult.ok(client.globalConfigGet())
         } catch (e: Exception) {
-            LOG.warn("Global config fetch failed: ${e.message}", e)
+            log.warn("Global config fetch failed: ${e.message}", e)
             logResponseBody("config", e)
             FetchResult.fail("config", e)
         }
@@ -231,7 +246,7 @@ class KiloBackendAppService(private val cs: CoroutineScope) : Disposable {
         return try {
             FetchResult.ok(client.kiloNotifications())
         } catch (e: Exception) {
-            LOG.warn("Notifications fetch failed: ${e.message}", e)
+            log.warn("Notifications fetch failed: ${e.message}", e)
             logResponseBody("notifications", e)
             FetchResult.fail("notifications", e)
         }
@@ -250,7 +265,7 @@ class KiloBackendAppService(private val cs: CoroutineScope) : Disposable {
             else -> null
         }
         if (body != null) {
-            LOG.warn("$resource response body: $body")
+            log.warn("$resource response body: $body")
         }
     }
 
@@ -263,11 +278,11 @@ class KiloBackendAppService(private val cs: CoroutineScope) : Disposable {
             last = block()
             if (last.value != null) return last
             if (attempt < MAX_RETRIES - 1) {
-                LOG.warn("$name: attempt ${attempt + 1}/$MAX_RETRIES failed — retrying in ${RETRY_DELAY_MS}ms")
+                log.warn("$name: attempt ${attempt + 1}/$MAX_RETRIES failed — retrying in ${RETRY_DELAY_MS}ms")
                 delay(RETRY_DELAY_MS)
             }
         }
-        LOG.error("$name: all $MAX_RETRIES attempts failed")
+        log.error("$name: all $MAX_RETRIES attempts failed")
         return last
     }
 
