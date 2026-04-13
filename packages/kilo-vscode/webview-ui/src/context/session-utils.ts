@@ -164,7 +164,6 @@ export function collapseCostBreakdown(
   items: Array<{ label: string; cost: number }>,
   summaryLabel: (count: number) => string,
 ): Array<{ label: string; cost: number }> {
-  if (items.length <= 1) return items
   const root = items[0]
   const children = items.slice(1)
   const reversed = [...children].reverse()
