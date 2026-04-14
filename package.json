@@ -134,6 +134,6 @@
     "@ai-sdk/provider-utils@4.0.21": "patches/@ai-sdk%2Fprovider-utils@4.0.21.patch",
     "@ai-sdk/anthropic@3.0.64": "patches/@ai-sdk%2Fanthropic@3.0.64.patch"
   },
-  "version": "7.2.5",
+  "version": "7.2.6",
   "peerDependencies": {}
 }
