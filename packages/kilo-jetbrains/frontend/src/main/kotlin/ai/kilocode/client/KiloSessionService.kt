@@ -29,15 +29,18 @@ import kotlinx.coroutines.launch
  * Project-level frontend service for session management.
  *
  * Stateless with respect to "active session" — callers pass explicit
- * session IDs. [SessionModel] owns the active session concept.
- *
- * All operations are scoped to the project's [directory] by default.
+ * session IDs. [ai.kilocode.client.chat.model.SessionModel] owns the
+ * active session concept.
  */
 @Service(Service.Level.PROJECT)
-class KiloSessionService(
+class KiloSessionService internal constructor(
     private val project: Project,
     private val cs: CoroutineScope,
+    private val rpc: KiloSessionRpcApi?,
 ) {
+    /** Platform constructor — resolves RPC from the service container. */
+    constructor(project: Project, cs: CoroutineScope) : this(project, cs, null)
+
     companion object {
         private val LOG = Logger.getInstance(KiloSessionService::class.java)
     }
@@ -61,13 +64,21 @@ class KiloSessionService(
     val sessions: StateFlow<List<SessionDto>> = _sessions.asStateFlow()
 
     /** Live session status map from SSE events. */
-    val statuses: StateFlow<Map<String, SessionStatusDto>> = flow {
-        durable {
-            KiloSessionRpcApi.getInstance()
-                .statuses()
-                .collect { emit(it) }
-        }
-    }.stateIn(cs, SharingStarted.Eagerly, emptyMap())
+    val statuses: StateFlow<Map<String, SessionStatusDto>> =
+        stream { statuses() }.stateIn(cs, SharingStarted.Eagerly, emptyMap())
+
+    // ------ RPC helpers ------
+
+    private suspend fun <T> call(block: suspend KiloSessionRpcApi.() -> T): T {
+        val api = rpc
+        return if (api != null) block(api) else durable { block(KiloSessionRpcApi.getInstance()) }
+    }
+
+    private fun <T> stream(block: suspend KiloSessionRpcApi.() -> Flow<T>): Flow<T> = flow {
+        val api = rpc
+        if (api != null) block(api).collect { emit(it) }
+        else durable { block(KiloSessionRpcApi.getInstance()).collect { emit(it) } }
+    }
 
     // ------ Session CRUD ------
 
@@ -75,7 +86,7 @@ class KiloSessionService(
     fun refresh() {
         cs.launch {
             try {
-                val result = durable { KiloSessionRpcApi.getInstance().list(directory) }
+                val result = call { list(directory) }
                 _sessions.value = result.sessions
             } catch (e: Exception) {
                 LOG.warn("session list failed", e)
@@ -87,7 +98,7 @@ class KiloSessionService(
     suspend fun create(): SessionDto {
         val dir = directory
         LOG.info("create: dir=$dir")
-        val session = durable { KiloSessionRpcApi.getInstance().create(dir) }
+        val session = call { create(dir) }
         LOG.info("create: id=${session.id}")
         refresh()
         return session
@@ -97,7 +108,7 @@ class KiloSessionService(
     fun delete(id: String) {
         cs.launch {
             try {
-                durable { KiloSessionRpcApi.getInstance().delete(id, directory) }
+                call { delete(id, directory) }
                 refresh()
             } catch (e: Exception) {
                 LOG.warn("session delete failed", e)
@@ -109,7 +120,7 @@ class KiloSessionService(
     fun setDirectory(id: String, dir: String) {
         cs.launch {
             try {
-                durable { KiloSessionRpcApi.getInstance().setDirectory(id, dir) }
+                call { setDirectory(id, dir) }
             } catch (e: Exception) {
                 LOG.warn("setDirectory failed", e)
             }
@@ -121,33 +132,32 @@ class KiloSessionService(
     /** Send a text prompt to a session. */
     suspend fun prompt(id: String, dir: String, text: String) {
         LOG.info("prompt: session=$id, dir=$dir, text=${text.take(80)}")
-        val prompt = PromptDto(
-            parts = listOf(PromptPartDto(type = "text", text = text)),
-        )
-        durable { KiloSessionRpcApi.getInstance().prompt(id, dir, prompt) }
+        val dto = PromptDto(parts = listOf(PromptPartDto(type = "text", text = text)))
+        call { prompt(id, dir, dto) }
         LOG.info("prompt: RPC returned successfully")
     }
 
     /** Abort ongoing processing for a session. */
     suspend fun abort(id: String, dir: String) {
-        durable { KiloSessionRpcApi.getInstance().abort(id, dir) }
+        call { abort(id, dir) }
     }
 
     /** Load message history for a session. */
     suspend fun messages(id: String, dir: String): List<MessageWithPartsDto> =
-        durable { KiloSessionRpcApi.getInstance().messages(id, dir) }
+        call { messages(id, dir) }
 
     /** Subscribe to streaming chat events for a session. */
-    fun events(id: String, dir: String): Flow<ChatEventDto> = flow {
-        durable {
-            KiloSessionRpcApi.getInstance()
-                .events(id, dir)
-                .collect { emit(it) }
+    fun events(id: String, dir: String): Flow<ChatEventDto> {
+        val api = rpc
+        return if (api != null) flow {
+            api.events(id, dir).collect { emit(it) }
+        } else flow {
+            durable { KiloSessionRpcApi.getInstance().events(id, dir).collect { emit(it) } }
         }
     }
 
     /** Update config (model, agent/mode, temperature). */
     suspend fun updateConfig(dir: String, config: ConfigUpdateDto) {
-        durable { KiloSessionRpcApi.getInstance().updateConfig(dir, config) }
+        call { updateConfig(dir, config) }
     }
 }

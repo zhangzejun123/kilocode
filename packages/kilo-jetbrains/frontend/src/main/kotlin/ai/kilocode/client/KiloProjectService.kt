@@ -10,6 +10,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import fleet.rpc.client.durable
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,16 +25,16 @@ import kotlinx.coroutines.launch
  * Project-level frontend service that provides reactive access
  * to project-scoped data (providers, agents, commands, skills)
  * and resolves the real project directory from the backend.
- *
- * In split mode, [Project.getBasePath] returns a synthetic sandbox
- * path. This service resolves the backend's actual project directory
- * via [KiloProjectRpcApi.directory] and uses it for all CLI calls.
  */
 @Service(Service.Level.PROJECT)
-class KiloProjectService(
+class KiloProjectService internal constructor(
     private val project: Project,
     private val cs: CoroutineScope,
+    private val rpc: KiloProjectRpcApi?,
 ) {
+    /** Platform constructor — resolves RPC from the service container. */
+    constructor(project: Project, cs: CoroutineScope) : this(project, cs, null)
+
     companion object {
         private val LOG = Logger.getInstance(KiloProjectService::class.java)
         private val init = KiloWorkspaceStateDto(KiloWorkspaceStatusDto.PENDING)
@@ -41,15 +42,30 @@ class KiloProjectService(
 
     private val hint: String get() = project.basePath ?: ""
 
-    private val _directory = MutableStateFlow("")
+    internal val _directory = MutableStateFlow("")
 
     /** The real project directory as resolved by the backend. */
     val directory: StateFlow<String> = _directory.asStateFlow()
 
+    // ------ RPC helpers ------
+
+    private suspend fun <T> call(block: suspend KiloProjectRpcApi.() -> T): T {
+        val api = rpc
+        return if (api != null) block(api) else durable { block(KiloProjectRpcApi.getInstance()) }
+    }
+
+    private fun <T> stream(block: suspend KiloProjectRpcApi.() -> Flow<T>): Flow<T> = flow {
+        val api = rpc
+        if (api != null) block(api).collect { emit(it) }
+        else durable { block(KiloProjectRpcApi.getInstance()).collect { emit(it) } }
+    }
+
+    // ------ Init ------
+
     init {
         cs.launch {
             try {
-                val resolved = durable { KiloProjectRpcApi.getInstance().directory(hint) }
+                val resolved = call { directory(hint) }
                 LOG.info("Resolved project directory: hint=$hint → resolved=$resolved")
                 _directory.value = resolved
             } catch (e: Exception) {
@@ -63,13 +79,7 @@ class KiloProjectService(
     val state: StateFlow<KiloWorkspaceStateDto> = _directory
         .flatMapLatest { dir ->
             if (dir.isEmpty()) return@flatMapLatest flowOf(init)
-            flow {
-                durable {
-                    KiloProjectRpcApi.getInstance()
-                        .state(dir)
-                        .collect { emit(it) }
-                }
-            }
+            stream { state(dir) }
         }
         .stateIn(cs, SharingStarted.Eagerly, init)
 
@@ -79,7 +89,7 @@ class KiloProjectService(
             val dir = _directory.value
             if (dir.isEmpty()) return@launch
             try {
-                durable { KiloProjectRpcApi.getInstance().reload(dir) }
+                call { reload(dir) }
             } catch (e: Exception) {
                 LOG.warn("project data reload failed", e)
             }

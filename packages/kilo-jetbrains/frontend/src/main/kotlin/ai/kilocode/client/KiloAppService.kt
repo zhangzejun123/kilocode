@@ -22,12 +22,15 @@ import kotlinx.coroutines.launch
  *
  * Communicates with the backend via [KiloAppRpcApi]. All operations
  * are app-scoped — no project context is needed.
- *
- * Callers of [watch] are responsible for scheduling UI updates on
- * the EDT and converting [KiloAppStateDto] to display text.
  */
 @Service(Service.Level.APP)
-class KiloAppService(private val cs: CoroutineScope) {
+class KiloAppService internal constructor(
+    private val cs: CoroutineScope,
+    private val rpc: KiloAppRpcApi?,
+) {
+    /** Platform constructor — resolves RPC from the service container. */
+    constructor(cs: CoroutineScope) : this(cs, null)
+
     companion object {
         private val LOG = Logger.getInstance(KiloAppService::class.java)
         private val init = KiloAppStateDto(KiloAppStatusDto.DISCONNECTED)
@@ -40,28 +43,31 @@ class KiloAppService(private val cs: CoroutineScope) {
     var version: String? = null
         private set
 
-    private val _state = MutableStateFlow(init)
+    internal val _state = MutableStateFlow(init)
     val state: StateFlow<KiloAppStateDto> = _state.asStateFlow()
+
+    // ------ RPC helper ------
+
+    private suspend fun <T> call(block: suspend KiloAppRpcApi.() -> T): T {
+        val api = rpc
+        return if (api != null) block(api) else durable { block(KiloAppRpcApi.getInstance()) }
+    }
+
+    // ------ Lifecycle ------
 
     fun connect() {
         if (!started.compareAndSet(false, true)) return
+        cs.launch { call { connect() } }
         cs.launch {
-            durable {
-                KiloAppRpcApi.getInstance().connect()
-            }
-        }
-        cs.launch {
-            durable {
-                KiloAppRpcApi.getInstance()
-                    .state()
-                    .collect { _state.value = it }
-            }
+            val api = rpc
+            if (api != null) api.state().collect { _state.value = it }
+            else durable { KiloAppRpcApi.getInstance().state().collect { _state.value = it } }
         }
     }
 
     /** One-shot health check. Returns null on failure. */
     suspend fun health(): HealthDto? = try {
-        durable { KiloAppRpcApi.getInstance().health() }
+        call { health() }
     } catch (e: Exception) {
         LOG.warn("health check failed", e)
         null
@@ -72,7 +78,7 @@ class KiloAppService(private val cs: CoroutineScope) {
         LOG.info("restart: resetting state and sending RPC")
         started.set(false)
         version = null
-        durable { KiloAppRpcApi.getInstance().restart() }
+        call { restart() }
         LOG.info("restart: RPC returned — backend restart complete")
     }
 
@@ -81,7 +87,7 @@ class KiloAppService(private val cs: CoroutineScope) {
         LOG.info("reinstall: resetting state and sending RPC")
         started.set(false)
         version = null
-        durable { KiloAppRpcApi.getInstance().reinstall() }
+        call { reinstall() }
         LOG.info("reinstall: RPC returned — backend reinstall complete")
     }
 
@@ -113,9 +119,6 @@ class KiloAppService(private val cs: CoroutineScope) {
 
     /**
      * Collect app state changes and invoke [fn] for each update.
-     *
-     * The callback receives raw [KiloAppStateDto] — the caller is
-     * responsible for converting to display text and scheduling on the EDT.
      */
     fun watch(fn: (KiloAppStateDto) -> Unit): Job {
         return cs.launch {
