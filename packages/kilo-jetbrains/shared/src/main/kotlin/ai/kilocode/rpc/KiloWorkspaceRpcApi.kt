@@ -15,10 +15,10 @@ import kotlinx.coroutines.flow.Flow
  * via the workspace manager.
  */
 @Rpc
-interface KiloProjectRpcApi : RemoteApi<Unit> {
+interface KiloWorkspaceRpcApi : RemoteApi<Unit> {
     companion object {
-        suspend fun getInstance(): KiloProjectRpcApi {
-            return RemoteApiProviderService.resolve(remoteApiDescriptor<KiloProjectRpcApi>())
+        suspend fun getInstance(): KiloWorkspaceRpcApi {
+            return RemoteApiProviderService.resolve(remoteApiDescriptor<KiloWorkspaceRpcApi>())
         }
     }
 

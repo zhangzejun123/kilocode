@@ -4,7 +4,7 @@ import ai.kilocode.client.KiloAppService
 import ai.kilocode.client.KiloProjectService
 import ai.kilocode.client.KiloSessionService
 import ai.kilocode.client.testing.FakeAppRpcApi
-import ai.kilocode.client.testing.FakeProjectRpcApi
+import ai.kilocode.client.testing.FakeWorkspaceRpcApi
 import ai.kilocode.client.testing.FakeSessionRpcApi
 import ai.kilocode.rpc.dto.AgentDto
 import ai.kilocode.rpc.dto.AgentsDto
@@ -38,7 +38,7 @@ abstract class SessionModelTestBase : BasePlatformTestCase() {
 
     protected lateinit var rpc: FakeSessionRpcApi
     protected lateinit var appRpc: FakeAppRpcApi
-    protected lateinit var projectRpc: FakeProjectRpcApi
+    protected lateinit var projectRpc: FakeWorkspaceRpcApi
 
     protected lateinit var sessions: KiloSessionService
     protected lateinit var app: KiloAppService
@@ -51,7 +51,7 @@ abstract class SessionModelTestBase : BasePlatformTestCase() {
         super.setUp()
         rpc = FakeSessionRpcApi()
         appRpc = FakeAppRpcApi()
-        projectRpc = FakeProjectRpcApi()
+        projectRpc = FakeWorkspaceRpcApi()
 
         scope = CoroutineScope(SupervisorJob())
         parent = Disposer.newDisposable("test")

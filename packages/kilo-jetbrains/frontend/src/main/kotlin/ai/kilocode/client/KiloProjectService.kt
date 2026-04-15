@@ -2,7 +2,7 @@
 
 package ai.kilocode.client
 
-import ai.kilocode.rpc.KiloProjectRpcApi
+import ai.kilocode.rpc.KiloWorkspaceRpcApi
 import ai.kilocode.rpc.dto.KiloWorkspaceStateDto
 import ai.kilocode.rpc.dto.KiloWorkspaceStatusDto
 import com.intellij.openapi.components.Service
@@ -28,9 +28,9 @@ import kotlinx.coroutines.launch
  */
 @Service(Service.Level.PROJECT)
 class KiloProjectService internal constructor(
-    private val project: Project,
-    private val cs: CoroutineScope,
-    private val rpc: KiloProjectRpcApi?,
+  private val project: Project,
+  private val cs: CoroutineScope,
+  private val rpc: KiloWorkspaceRpcApi?,
 ) {
     /** Platform constructor — resolves RPC from the service container. */
     constructor(project: Project, cs: CoroutineScope) : this(project, cs, null)
@@ -49,15 +49,15 @@ class KiloProjectService internal constructor(
 
     // ------ RPC helpers ------
 
-    private suspend fun <T> call(block: suspend KiloProjectRpcApi.() -> T): T {
+    private suspend fun <T> call(block: suspend KiloWorkspaceRpcApi.() -> T): T {
         val api = rpc
-        return if (api != null) block(api) else durable { block(KiloProjectRpcApi.getInstance()) }
+        return if (api != null) block(api) else durable { block(KiloWorkspaceRpcApi.getInstance()) }
     }
 
-    private fun <T> stream(block: suspend KiloProjectRpcApi.() -> Flow<T>): Flow<T> = flow {
+    private fun <T> stream(block: suspend KiloWorkspaceRpcApi.() -> Flow<T>): Flow<T> = flow {
         val api = rpc
         if (api != null) block(api).collect { emit(it) }
-        else durable { block(KiloProjectRpcApi.getInstance()).collect { emit(it) } }
+        else durable { block(KiloWorkspaceRpcApi.getInstance()).collect { emit(it) } }
     }
 
     // ------ Init ------

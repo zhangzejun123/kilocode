@@ -14,7 +14,7 @@ import ai.kilocode.backend.workspace.ModelInfo
 import ai.kilocode.backend.workspace.ProviderData
 import ai.kilocode.backend.workspace.ProviderInfo
 import ai.kilocode.backend.workspace.SkillInfo
-import ai.kilocode.rpc.KiloProjectRpcApi
+import ai.kilocode.rpc.KiloWorkspaceRpcApi
 import ai.kilocode.rpc.dto.AgentDto
 import ai.kilocode.rpc.dto.AgentsDto
 import ai.kilocode.rpc.dto.CommandDto
@@ -35,13 +35,13 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 /**
- * Backend implementation of [KiloProjectRpcApi].
+ * Backend implementation of [KiloWorkspaceRpcApi].
  *
  * Routes through the [KiloBackendWorkspaceManager] to get a workspace
  * for the given directory. No [ProjectManager] dependency — any
  * directory (including worktrees) can get a workspace.
  */
-class KiloProjectRpcApiImpl : KiloProjectRpcApi {
+class KiloWorkspaceRpcApiImpl : KiloWorkspaceRpcApi {
 
     private val app: KiloBackendAppService get() = service()
 
