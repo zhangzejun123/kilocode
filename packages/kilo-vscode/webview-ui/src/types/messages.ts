@@ -439,6 +439,10 @@ export interface ExperimentalConfig {
   mcp_timeout?: number
 }
 
+export interface CommitMessageConfig {
+  prompt?: string
+}
+
 export interface Config {
   permission?: PermissionConfig
   model?: string | null
@@ -460,6 +464,7 @@ export interface Config {
   formatter?: false | Record<string, unknown>
   lsp?: false | Record<string, unknown>
   compaction?: CompactionConfig
+  commit_message?: CommitMessageConfig
   tools?: Record<string, boolean>
   layout?: "auto" | "stretch"
   experimental?: ExperimentalConfig
