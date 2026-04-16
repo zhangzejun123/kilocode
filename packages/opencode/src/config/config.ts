@@ -1424,7 +1424,17 @@ export namespace Config {
         if (!hasIgnore) {
           yield* fs.writeFileString(
             gitignore,
-            ["node_modules", "package.json", "package-lock.json", "bun.lock", ".gitignore"].join("\n"),
+            // kilocode_change start - added pnpm-lock.yaml and yarn.lock (not in upstream)
+            [
+              "node_modules",
+              "package.json",
+              "package-lock.json",
+              "pnpm-lock.yaml",
+              "bun.lock",
+              "yarn.lock",
+              ".gitignore",
+            ].join("\n"),
+            // kilocode_change end
           )
         }
 
