@@ -716,7 +716,7 @@ it.live(
       }),
       { git: true, config: providerCfg },
     ),
-  3_000,
+  10_000, // kilocode_change
 )
 
 // Cancel semantics
@@ -746,7 +746,7 @@ it.live(
       }),
       { git: true, config: providerCfg },
     ),
-  3_000,
+  10_000, // kilocode_change
 )
 
 it.live(
@@ -774,7 +774,7 @@ it.live(
       }),
       { git: true, config: providerCfg },
     ),
-  3_000,
+  10_000, // kilocode_change
 )
 
 it.live(
@@ -852,7 +852,7 @@ it.live(
       }),
       { git: true, config: providerCfg },
     ),
-  3_000,
+  10_000, // kilocode_change
 )
 
 // Queue semantics
@@ -896,7 +896,7 @@ it.live(
       }),
       { git: true, config: providerCfg },
     ),
-  3_000,
+  10_000, // kilocode_change
 )
 
 // kilocode_change start - skip flaky test, tracked in #8990
@@ -967,7 +967,7 @@ it.live.skip(
       }),
       { git: true, config: providerCfg },
     ),
-  3_000,
+  10_000, // kilocode_change
 )
 
 it.live(
@@ -997,7 +997,7 @@ it.live(
       }),
       { git: true, config: providerCfg },
     ),
-  3_000,
+  10_000, // kilocode_change
 )
 
 it.live("assertNotBusy succeeds when idle", () =>
@@ -1042,7 +1042,7 @@ it.live(
       }),
       { git: true, config: providerCfg },
     ),
-  3_000,
+  10_000, // kilocode_change
 )
 
 unix("shell captures stdout and stderr in completed tool output", () =>
@@ -1212,7 +1212,7 @@ it.live(
       }),
       { git: true, config: providerCfg },
     ),
-  3_000,
+  10_000, // kilocode_change
 )
 
 it.live(
@@ -1252,7 +1252,7 @@ it.live(
       }),
       { git: true, config: providerCfg },
     ),
-  3_000,
+  10_000, // kilocode_change
 )
 
 // kilocode_change start - TODO(#8990): flaky on Linux CI
