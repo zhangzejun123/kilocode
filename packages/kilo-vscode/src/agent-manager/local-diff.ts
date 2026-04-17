@@ -21,13 +21,13 @@ type Log = (...args: unknown[]) => void
  *  not stall the poll. Matches `GitOps.workingTreeStats()`. */
 const MAX_UNTRACKED_BYTES = 1_000_000
 
-/** Cap per-side reads in the detail view. Opening a 50 MB tracked file used
- *  to spike `kilo serve`; now that the detail path runs in the extension
- *  host, the same file would spike VS Code's RSS. Over this threshold we
- *  return a summarized entry (empty `before`/`after`/`patch`, metadata
- *  preserved) so the webview can render counts without materializing the
- *  content. */
-export const MAX_DETAIL_BYTES = 2_000_000
+/** Cap per-side reads in the detail view. Opening very large tracked files
+ *  used to spike `kilo serve`; now that the detail path runs in the
+ *  extension host, the same file would spike VS Code's RSS. Over this
+ *  threshold we return a summarized entry (empty `before`/`after`/`patch`,
+ *  metadata preserved) so the webview can render counts without
+ *  materializing the content. */
+export const MAX_DETAIL_BYTES = 20_000_000
 
 /**
  * Local, Node.js-side replacement for the server's `WorktreeDiff.summary()` and
