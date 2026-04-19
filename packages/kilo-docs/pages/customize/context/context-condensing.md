@@ -34,9 +34,9 @@ This summary replaces the earlier conversation history, freeing up context windo
 
 ## How Compaction Triggers
 
-### It's absolute tokens, not a percentage
+### Automatic trigger
 
-Compaction is **not** triggered at a fixed percentage of the context window. It fires when the running token count reaches the model's **usable window**:
+Compaction fires when the running token count reaches the model's **usable window**:
 
 ```
 usable = model.limit.input - reserved        (if the model exposes an input limit)
@@ -45,12 +45,10 @@ usable = model.limit.input - reserved        (if the model exposes an input limi
 trigger when: input + output + cache.read + cache.write >= usable
 ```
 
-- `reserved` defaults to `min(20,000, model_max_output_tokens)` — i.e. roughly **20K tokens** of headroom for the next turn, or less for models with a small output cap.
+- `reserved` defaults to `min(20,000, model_max_output_tokens)` — typically **20K tokens** of headroom for the next turn, or less for models with a small output cap.
 - `maxOutput` is `min(model.limit.output, 32,000)`.
-- The same formula runs for every model; the trigger only varies because different models have different window sizes. There is no per-model-family threshold.
-- If a custom model has `limit.context = 0` (unset), auto-compaction never triggers.
-
-In practice this means compaction fires at roughly **~100% of the model's input window minus a 20K safety buffer**.
+- The same formula applies to every model; the effective threshold varies only because different models have different window sizes.
+- If a custom model has `limit.context = 0` (unset), auto-compaction does not run.
 
 ### Context Pruning
 
@@ -133,9 +131,9 @@ This summary replaces the earlier conversation history, freeing up context windo
 
 ## How Compaction Triggers
 
-### It's absolute tokens, not a percentage
+### Automatic trigger
 
-Compaction is **not** triggered at a fixed percentage of the context window. It fires when the running token count reaches the model's **usable window**:
+Compaction fires when the running token count reaches the model's **usable window**:
 
 ```
 usable = model.limit.input - reserved        (if the model exposes an input limit)
@@ -144,12 +142,10 @@ usable = model.limit.input - reserved        (if the model exposes an input limi
 trigger when: input + output + cache.read + cache.write >= usable
 ```
 
-- `reserved` defaults to `min(20,000, model_max_output_tokens)` — i.e. roughly **20K tokens** of headroom for the next turn, or less for models with a small output cap.
+- `reserved` defaults to `min(20,000, model_max_output_tokens)` — typically **20K tokens** of headroom for the next turn, or less for models with a small output cap.
 - `maxOutput` is `min(model.limit.output, 32,000)`.
-- The same formula runs for every model; the trigger only varies because different models have different window sizes. There is no per-model-family threshold.
-- If a [custom model](/docs/code-with-ai/agents/custom-models) has `limit.context = 0` (unset), auto-compaction never triggers.
-
-In practice this means compaction fires at roughly **~100% of the model's input window minus a 20K safety buffer**.
+- The same formula applies to every model; the effective threshold varies only because different models have different window sizes.
+- If a [custom model](/docs/code-with-ai/agents/custom-models) has `limit.context = 0` (unset), auto-compaction does not run.
 
 ### Context Pruning
 
