@@ -1,6 +1,10 @@
 import { RemoteProtocol } from "@/kilo-sessions/remote-protocol"
 import type { RemoteWS } from "@/kilo-sessions/remote-ws"
 import { GlobalBus } from "@/bus/global"
+// kilocode_change - AppRuntime is imported lazily inside dispatch() below to break a
+// module init cycle: Worktree → project/bootstrap → kilo-sessions → remote-sender →
+// app-runtime → Worktree. Static import here caused Worktree.defaultLayer to be
+// undefined when app-runtime evaluated during tests that import Worktree.
 import { Instance } from "@/project/instance"
 import { Session } from "@/session"
 import { SessionPrompt } from "@/session/prompt"
@@ -11,7 +15,7 @@ import { PermissionID } from "@/permission/schema"
 import { SessionID } from "@/session/schema"
 import { QuestionID } from "@/question/schema"
 import { ModelID, ProviderID } from "@/provider/schema"
-import { Log } from "@/util/log"
+import { Log } from "@/util"
 import z from "zod"
 
 const QuestionData = z.object({
@@ -273,7 +277,7 @@ export namespace RemoteSender {
           return
         }
         dispatchLongRunning(msg, directoryFor(input.data.sessionID), async () => {
-          await SessionPrompt.prompt(input.data)
+          await SessionPrompt.prompt(input.data as SessionPrompt.PromptInput)
         })
         return
       }
@@ -351,9 +355,14 @@ export namespace RemoteSender {
           return
         }
         const dir = msg.sessionId ? directoryFor(msg.sessionId) : Promise.resolve(options.directory)
-        dispatchQuick(msg, dir, () =>
-          Permission.reply({ ...parsed.data, requestID: PermissionID.make(parsed.data.requestID) }),
-        )
+        dispatchQuick(msg, dir, async () => {
+          const { AppRuntime } = await import("@/effect/app-runtime")
+          await AppRuntime.runPromise(
+            Permission.Service.use((svc) =>
+              svc.reply({ ...parsed.data, requestID: PermissionID.make(parsed.data.requestID) }),
+            ),
+          )
+        })
         return
       }
       options.conn.send({
@@ -368,9 +377,9 @@ export namespace RemoteSender {
       if (msg.type === "subscribe") {
         if (sessions.has(msg.sessionId)) return
         sessions.add(msg.sessionId)
+        if (!unsub) unsub = sub(forwarder)
         void backfillChildren(msg.sessionId)
         void backfillPendingState(msg.sessionId)
-        if (!unsub) unsub = sub(forwarder)
         return
       }
       if (msg.type === "unsubscribe") {

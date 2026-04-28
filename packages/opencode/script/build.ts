@@ -126,12 +126,10 @@ const allTargets: {
     arch: "x64",
     avx2: false,
   },
-  // kilocode_change start - Windows ARM64 target
   {
     os: "win32",
     arch: "arm64",
   },
-  // kilocode_change end
   {
     os: "win32",
     arch: "x64",
@@ -141,12 +139,6 @@ const allTargets: {
     arch: "x64",
     avx2: false,
   },
-  // kilocode_change start - added Windows ARM64 target
-  {
-    os: "win32",
-    arch: "arm64",
-  },
-  // kilocode_change end
 ]
 
 const targets = singleFlag
@@ -205,6 +197,9 @@ for (const item of targets) {
     tsconfig: "./tsconfig.json",
     plugins: [plugin],
     external: ["node-gyp"],
+    format: "esm",
+    minify: true,
+    splitting: true,
     compile: {
       autoloadBunfig: false,
       autoloadDotenv: false,
@@ -215,9 +210,7 @@ for (const item of targets) {
       execArgv: [`--user-agent=kilo/${Script.version}`, "--use-system-ca", "--"], // kilocode_change
       windows: {},
     },
-    files: {
-      ...(embeddedFileMap ? { "opencode-web-ui.gen.ts": embeddedFileMap } : {}),
-    },
+    files: embeddedFileMap ? { "opencode-web-ui.gen.ts": embeddedFileMap } : {},
     entrypoints: ["./src/index.ts", parserWorker, workerPath, ...(embeddedFileMap ? ["opencode-web-ui.gen.ts"] : [])],
     define: {
       KILO_VERSION: `'${Script.version}'`,

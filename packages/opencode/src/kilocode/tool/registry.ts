@@ -1,18 +1,28 @@
 // kilocode_change - new file
 import { CodebaseSearchTool } from "../../tool/warpgrep"
 import { RecallTool } from "../../tool/recall"
-import { Tool } from "../../tool/tool"
+import { Tool } from "../../tool"
 import { Flag } from "@/flag/flag"
 import { ProviderID } from "../../provider/schema"
-import { Env } from "../../env"
 import { Effect } from "effect"
 
 export namespace KiloToolRegistry {
-  /** Build Kilo-specific tools (CodebaseSearch, Recall) as Tool.Def */
-  export function build() {
+  /** Resolve Kilo-specific tool Infos outside any InstanceState, so their Truncate/Agent deps are
+   * satisfied at the outer registry scope instead of leaking into InstanceState's Effect. */
+  export function infos() {
+    return Effect.gen(function* () {
+      const codebase = yield* CodebaseSearchTool
+      const recall = yield* RecallTool
+      return { codebase, recall }
+    })
+  }
+
+  /** Finalize Kilo-specific tools into Tool.Defs. Call this inside the InstanceState state Effect —
+   * it has no Service deps beyond what Tool.init itself needs. */
+  export function build(tools: { codebase: Tool.Info; recall: Tool.Info }) {
     return Effect.all({
-      codebase: Tool.init(CodebaseSearchTool),
-      recall: Tool.init(RecallTool),
+      codebase: Tool.init(tools.codebase),
+      recall: Tool.init(tools.recall),
     })
   }
 
@@ -39,13 +49,8 @@ export namespace KiloToolRegistry {
     return [...(cfg.experimental?.codebase_search === true ? [tools.codebase] : []), tools.recall]
   }
 
-  /** Check whether exa-based tools (codesearch/websearch) are enabled for a provider */
-  export function exa(providerID: ProviderID): boolean {
-    return providerID === ProviderID.kilo || Flag.KILO_ENABLE_EXA
-  }
-
   /** Check for E2E LLM URL (uses KILO_E2E_LLM_URL env var) */
   export function e2e(): boolean {
-    return !!Env.get("KILO_E2E_LLM_URL")
+    return !!process.env["KILO_E2E_LLM_URL"]
   }
 }
