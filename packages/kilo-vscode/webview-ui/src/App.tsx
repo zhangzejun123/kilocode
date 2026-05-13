@@ -16,6 +16,8 @@ import { VSCodeProvider, useVSCode } from "./context/vscode"
 import { ServerProvider, useServer } from "./context/server"
 import { ProviderProvider, useProvider } from "./context/provider"
 import { ConfigProvider } from "./context/config"
+import { DisplayProvider } from "./context/display"
+import { IndexingProvider } from "./context/indexing"
 import { SessionProvider, useSession } from "./context/session"
 import { LanguageProvider } from "./context/language"
 import { ChatView } from "./components/chat"
@@ -31,6 +33,8 @@ registerVscodeToolOverrides()
 import HistoryView from "./components/history/HistoryView"
 import { MigrationWizard } from "./components/migration" // legacy-migration
 import { NotificationsProvider } from "./context/notifications"
+import { FeedbackProvider } from "./context/feedback"
+import { KiloEmbeddingModelsProvider } from "./context/kilo-embedding-models"
 import type { Message as SDKMessage, Part as SDKPart } from "@kilocode/sdk/v2"
 import "./styles/chat.css"
 
@@ -132,6 +136,10 @@ export const DataBridge: Component<{ children: any }> = (props) => {
     vscode.postMessage({ type: "openFile", filePath, line, column })
   }
 
+  const openDiff = (diff: { file: string; patch?: string; additions: number; deletions: number }) => {
+    vscode.postMessage({ type: "openDiffVirtual", diff, initialDiffStyle: "split" })
+  }
+
   const openUrl = (url: string) => {
     vscode.postMessage({ type: "openExternal", url })
   }
@@ -151,6 +159,7 @@ export const DataBridge: Component<{ children: any }> = (props) => {
       onQuestionReply={reply}
       onQuestionReject={reject}
       onOpenFile={open}
+      onOpenDiff={openDiff}
       onOpenUrl={openUrl}
     >
       {props.children}
@@ -169,6 +178,27 @@ export const LanguageBridge: Component<{ children: any }> = (props) => {
       {props.children}
     </LanguageProvider>
   )
+}
+
+type MermaidImageEvent = CustomEvent<{ dataUrl: string; filename: string }>
+
+export const MermaidDownloadBridge: Component = () => {
+  const vscode = useVSCode()
+
+  onMount(() => {
+    const save = (event: Event) => {
+      const detail = (event as MermaidImageEvent).detail
+      if (!detail?.dataUrl || !detail.filename) return
+      event.preventDefault()
+      vscode.postMessage({ type: "saveImage", dataUrl: detail.dataUrl, filename: detail.filename })
+    }
+    window.addEventListener("kilo:save-image", save)
+    onCleanup(() => {
+      window.removeEventListener("kilo:save-image", save)
+    })
+  })
+
+  return null
 }
 
 // Inner app component that uses the contexts
@@ -237,6 +267,7 @@ const AppContent: Component = () => {
         console.log("[Kilo New] App: 🧭 navigate:", message.view, message.tab ? `tab=${message.tab}` : "")
         if (message.tab) setSettingsTab(message.tab)
         setCurrentView(message.view as ViewType)
+        vscode.postMessage({ type: "settingsTabChanged", tab: message.tab })
       }
       if (message?.type === "openCloudSession" && message.sessionId) {
         console.log("[Kilo New] App: ☁️ openCloudSession:", message.sessionId)
@@ -334,6 +365,7 @@ const App: Component = () => {
     <ThemeProvider defaultTheme="kilo-vscode">
       <DialogProvider>
         <VSCodeProvider>
+          <MermaidDownloadBridge />
           <ServerProvider>
             <LanguageBridge>
               <MarkedProvider>
@@ -342,13 +374,21 @@ const App: Component = () => {
                     <FileComponentProvider component={File}>
                       <ProviderProvider>
                         <ConfigProvider>
-                          <NotificationsProvider>
-                            <SessionProvider>
-                              <DataBridge>
-                                <AppContent />
-                              </DataBridge>
-                            </SessionProvider>
-                          </NotificationsProvider>
+                          <DisplayProvider>
+                            <IndexingProvider>
+                              <KiloEmbeddingModelsProvider>
+                                <NotificationsProvider>
+                                  <SessionProvider>
+                                    <FeedbackProvider>
+                                      <DataBridge>
+                                        <AppContent />
+                                      </DataBridge>
+                                    </FeedbackProvider>
+                                  </SessionProvider>
+                                </NotificationsProvider>
+                              </KiloEmbeddingModelsProvider>
+                            </IndexingProvider>
+                          </DisplayProvider>
                         </ConfigProvider>
                       </ProviderProvider>
                     </FileComponentProvider>

@@ -1,26 +1,33 @@
 import { BusEvent } from "@/bus/bus-event"
 import { SessionID, MessageID, PartID } from "./schema"
 import z from "zod"
-import { NamedError } from "@opencode-ai/shared/util/error"
+import { NamedError } from "@opencode-ai/core/util/error"
 import { APICallError, convertToModelMessages, LoadAPIKeyError, type ModelMessage, type UIMessage } from "ai"
-import { LSP } from "../lsp"
+import { LSP } from "@/lsp/lsp"
 import { Snapshot } from "@/snapshot"
 import { SyncEvent } from "../sync"
-import { Database, NotFoundError, and, desc, eq, inArray, lt, or } from "@/storage"
+import { Database } from "@/storage/db"
+import { NotFoundError } from "@/storage/storage"
+import { and } from "drizzle-orm"
+import { desc } from "drizzle-orm"
+import { eq } from "drizzle-orm"
+import { inArray } from "drizzle-orm"
+import { lt } from "drizzle-orm"
+import { or } from "drizzle-orm"
 import { MessageTable, PartTable, SessionTable } from "./session.sql"
-import { ProviderError } from "@/provider"
+import * as ProviderError from "@/provider/error"
 import { iife } from "@/util/iife"
 import { errorMessage } from "@/util/error"
 import { isMedia } from "@/util/media"
 import type { SystemError } from "bun"
-import type { Provider } from "@/provider"
+import type { Provider } from "@/provider/provider"
 import { ModelID, ProviderID } from "@/provider/schema"
 import { SessionNetwork } from "./network" // kilocode_change
 import { Effect, Schema, Types } from "effect"
 import { zod, ZodOverride } from "@/util/effect-zod"
-import { withStatics } from "@/util/schema"
+import { NonNegativeInt, withStatics } from "@/util/schema"
 import { namedSchemaError } from "@/util/named-schema-error"
-import { EffectLogger } from "@/effect"
+import * as EffectLogger from "@opencode-ai/core/effect/logger"
 
 /** Error shape thrown by Bun's fetch() when gzip/br decompression fails mid-stream */
 interface FetchDecompressionError extends Error {
@@ -36,7 +43,7 @@ export const OutputLengthError = namedSchemaError("MessageOutputLengthError", {}
 export const AbortedError = namedSchemaError("MessageAbortedError", { message: Schema.String })
 export const StructuredOutputError = namedSchemaError("StructuredOutputError", {
   message: Schema.String,
-  retries: Schema.Number,
+  retries: NonNegativeInt,
 })
 export const AuthError = namedSchemaError("ProviderAuthError", {
   providerID: Schema.String,
@@ -44,7 +51,7 @@ export const AuthError = namedSchemaError("ProviderAuthError", {
 })
 export const APIError = namedSchemaError("APIError", {
   message: Schema.String,
-  statusCode: Schema.optional(Schema.Number),
+  statusCode: Schema.optional(NonNegativeInt),
   isRetryable: Schema.Boolean,
   responseHeaders: Schema.optional(Schema.Record(Schema.String, Schema.String)),
   responseBody: Schema.optional(Schema.String),
@@ -65,9 +72,7 @@ export class OutputFormatText extends Schema.Class<OutputFormatText>("OutputForm
 export class OutputFormatJsonSchema extends Schema.Class<OutputFormatJsonSchema>("OutputFormatJsonSchema")({
   type: Schema.Literal("json_schema"),
   schema: Schema.Record(Schema.String, Schema.Any).annotate({ identifier: "JSONSchema" }),
-  retryCount: Schema.Number.check(Schema.isInt())
-    .check(Schema.isGreaterThanOrEqualTo(0))
-    .pipe(Schema.optional, Schema.withDecodingDefault(Effect.succeed(2))),
+  retryCount: NonNegativeInt.pipe(Schema.optional, Schema.withDecodingDefault(Effect.succeed(2))),
 }) {
   static readonly zod = zod(this)
 }
@@ -112,8 +117,8 @@ export const TextPart = Schema.Struct({
   ignored: Schema.optional(Schema.Boolean),
   time: Schema.optional(
     Schema.Struct({
-      start: Schema.Number,
-      end: Schema.optional(Schema.Number),
+      start: NonNegativeInt,
+      end: Schema.optional(NonNegativeInt),
     }),
   ),
   metadata: Schema.optional(Schema.Record(Schema.String, Schema.Any)),
@@ -128,8 +133,8 @@ export const ReasoningPart = Schema.Struct({
   text: Schema.String,
   metadata: Schema.optional(Schema.Record(Schema.String, Schema.Any)),
   time: Schema.Struct({
-    start: Schema.Number,
-    end: Schema.optional(Schema.Number),
+    start: NonNegativeInt,
+    end: Schema.optional(NonNegativeInt),
   }),
 })
   .annotate({ identifier: "ReasoningPart" })
@@ -139,8 +144,8 @@ export type ReasoningPart = Types.DeepMutable<Schema.Schema.Type<typeof Reasonin
 const filePartSourceBase = {
   text: Schema.Struct({
     value: Schema.String,
-    start: Schema.Number.check(Schema.isInt()),
-    end: Schema.Number.check(Schema.isInt()),
+    start: NonNegativeInt,
+    end: NonNegativeInt,
   }).annotate({ identifier: "FilePartSourceText" }),
 }
 
@@ -158,7 +163,7 @@ export const SymbolSource = Schema.Struct({
   path: Schema.String,
   range: LSP.Range,
   name: Schema.String,
-  kind: Schema.Number.check(Schema.isInt()),
+  kind: NonNegativeInt,
 })
   .annotate({ identifier: "SymbolSource" })
   .pipe(withStatics((s) => ({ zod: zod(s) })))
@@ -197,8 +202,8 @@ export const AgentPart = Schema.Struct({
   source: Schema.optional(
     Schema.Struct({
       value: Schema.String,
-      start: Schema.Number.check(Schema.isInt()),
-      end: Schema.Number.check(Schema.isInt()),
+      start: NonNegativeInt,
+      end: NonNegativeInt,
     }),
   ),
 })
@@ -238,11 +243,10 @@ export type SubtaskPart = Types.DeepMutable<Schema.Schema.Type<typeof SubtaskPar
 export const RetryPart = Schema.Struct({
   ...partBase,
   type: Schema.Literal("retry"),
-  attempt: Schema.Number,
-  // APIError is still NamedError-based Zod; bridge via ZodOverride until errors migrate.
-  error: Schema.Any.annotate({ [ZodOverride]: APIError.Schema }),
+  attempt: NonNegativeInt,
+  error: APIError.EffectSchema,
   time: Schema.Struct({
-    created: Schema.Number,
+    created: NonNegativeInt,
   }),
 })
   .annotate({ identifier: "RetryPart" })
@@ -265,15 +269,15 @@ export const StepFinishPart = Schema.Struct({
   type: Schema.Literal("step-finish"),
   reason: Schema.String,
   snapshot: Schema.optional(Schema.String),
-  cost: Schema.Number,
+  cost: Schema.Finite,
   tokens: Schema.Struct({
-    total: Schema.optional(Schema.Number),
-    input: Schema.Number,
-    output: Schema.Number,
-    reasoning: Schema.Number,
+    total: Schema.optional(NonNegativeInt),
+    input: NonNegativeInt,
+    output: NonNegativeInt,
+    reasoning: NonNegativeInt,
     cache: Schema.Struct({
-      read: Schema.Number,
-      write: Schema.Number,
+      read: NonNegativeInt,
+      write: NonNegativeInt,
     }),
   }),
 })
@@ -296,7 +300,7 @@ export const ToolStateRunning = Schema.Struct({
   title: Schema.optional(Schema.String),
   metadata: Schema.optional(Schema.Record(Schema.String, Schema.Any)),
   time: Schema.Struct({
-    start: Schema.Number,
+    start: NonNegativeInt,
   }),
 })
   .annotate({ identifier: "ToolStateRunning" })
@@ -310,9 +314,9 @@ export const ToolStateCompleted = Schema.Struct({
   title: Schema.String,
   metadata: Schema.Record(Schema.String, Schema.Any),
   time: Schema.Struct({
-    start: Schema.Number,
-    end: Schema.Number,
-    compacted: Schema.optional(Schema.Number),
+    start: NonNegativeInt,
+    end: NonNegativeInt,
+    compacted: Schema.optional(NonNegativeInt),
   }),
   attachments: Schema.optional(Schema.Array(FilePart)),
 })
@@ -332,8 +336,8 @@ export const ToolStateError = Schema.Struct({
   error: Schema.String,
   metadata: Schema.optional(Schema.Record(Schema.String, Schema.Any)),
   time: Schema.Struct({
-    start: Schema.Number,
-    end: Schema.Number,
+    start: NonNegativeInt,
+    end: NonNegativeInt,
   }),
 })
   .annotate({ identifier: "ToolStateError" })
@@ -372,11 +376,21 @@ const messageBase = {
   sessionID: SessionID,
 }
 
+// kilocode_change start - shared editor context schema (used by MessageV2.User and SessionPrompt.PromptInput)
+export const EditorContext = Schema.Struct({
+  visibleFiles: Schema.optional(Schema.Array(Schema.String)),
+  openTabs: Schema.optional(Schema.Array(Schema.String)),
+  activeFile: Schema.optional(Schema.String),
+  shell: Schema.optional(Schema.String),
+})
+export type EditorContext = Types.DeepMutable<Schema.Schema.Type<typeof EditorContext>>
+// kilocode_change end
+
 export const User = Schema.Struct({
   ...messageBase,
   role: Schema.Literal("user"),
   time: Schema.Struct({
-    created: Schema.Number,
+    created: NonNegativeInt,
   }),
   format: Schema.optional(_Format),
   summary: Schema.optional(
@@ -395,14 +409,7 @@ export const User = Schema.Struct({
   system: Schema.optional(Schema.String),
   tools: Schema.optional(Schema.Record(Schema.String, Schema.Boolean)),
   // kilocode_change start
-  editorContext: Schema.optional(
-    Schema.Struct({
-      visibleFiles: Schema.optional(Schema.Array(Schema.String)),
-      openTabs: Schema.optional(Schema.Array(Schema.String)),
-      activeFile: Schema.optional(Schema.String),
-      shell: Schema.optional(Schema.String),
-    }),
-  ),
+  editorContext: Schema.optional(EditorContext),
   // kilocode_change end
 })
   .annotate({ identifier: "UserMessage" })
@@ -453,9 +460,7 @@ export type Part =
   | RetryPart
   | CompactionPart
 
-// Errors are still NamedError-based Zod; bridge via ZodOverride so the derived
-// Zod + JSON Schema emit the original discriminatedUnion shape. Migrating the
-// error classes to Schema.TaggedErrorClass is a separate slice.
+// Zod discriminated union kept for the legacy Hono OpenAPI path.
 const AssistantErrorZod = z.discriminatedUnion("name", [
   AuthError.Schema,
   NamedError.Unknown.Schema,
@@ -466,6 +471,19 @@ const AssistantErrorZod = z.discriminatedUnion("name", [
   APIError.Schema,
 ])
 type AssistantError = z.infer<typeof AssistantErrorZod>
+
+// Effect Schema for the same union — used by HttpApi OpenAPI generation.
+const AssistantErrorSchema = Schema.Union([
+  AuthError.EffectSchema,
+  Schema.Struct({ name: Schema.Literal("UnknownError"), data: Schema.Struct({ message: Schema.String }) }).annotate({
+    identifier: "UnknownError",
+  }),
+  OutputLengthError.EffectSchema,
+  AbortedError.EffectSchema,
+  StructuredOutputError.EffectSchema,
+  ContextOverflowError.EffectSchema,
+  APIError.EffectSchema,
+]).annotate({ discriminator: "name" })
 
 // ── Prompt input schemas ─────────────────────────────────────────────────────
 //
@@ -483,8 +501,8 @@ export const TextPartInput = Schema.Struct({
   ignored: Schema.optional(Schema.Boolean),
   time: Schema.optional(
     Schema.Struct({
-      start: Schema.Number,
-      end: Schema.optional(Schema.Number),
+      start: NonNegativeInt,
+      end: Schema.optional(NonNegativeInt),
     }),
   ),
   metadata: Schema.optional(Schema.Record(Schema.String, Schema.Any)),
@@ -512,8 +530,8 @@ export const AgentPartInput = Schema.Struct({
   source: Schema.optional(
     Schema.Struct({
       value: Schema.String,
-      start: Schema.Number.check(Schema.isInt()),
-      end: Schema.Number.check(Schema.isInt()),
+      start: NonNegativeInt,
+      end: NonNegativeInt,
     }),
   ),
 })
@@ -543,10 +561,10 @@ export const Assistant = Schema.Struct({
   ...messageBase,
   role: Schema.Literal("assistant"),
   time: Schema.Struct({
-    created: Schema.Number,
-    completed: Schema.optional(Schema.Number),
+    created: NonNegativeInt,
+    completed: Schema.optional(NonNegativeInt),
   }),
-  error: Schema.optional(Schema.Any.annotate({ [ZodOverride]: AssistantErrorZod })),
+  error: Schema.optional(AssistantErrorSchema),
   parentID: MessageID,
   modelID: ModelID,
   providerID: ProviderID,
@@ -560,15 +578,15 @@ export const Assistant = Schema.Struct({
     root: Schema.String,
   }),
   summary: Schema.optional(Schema.Boolean),
-  cost: Schema.Number,
+  cost: Schema.Finite,
   tokens: Schema.Struct({
-    total: Schema.optional(Schema.Number),
-    input: Schema.Number,
-    output: Schema.Number,
-    reasoning: Schema.Number,
+    total: Schema.optional(NonNegativeInt),
+    input: NonNegativeInt,
+    output: NonNegativeInt,
+    reasoning: NonNegativeInt,
     cache: Schema.Struct({
-      read: Schema.Number,
-      write: Schema.Number,
+      read: NonNegativeInt,
+      write: NonNegativeInt,
     }),
   }),
   structured: Schema.optional(Schema.Any),
@@ -587,54 +605,62 @@ export const Info = Object.assign(_Info, {
 })
 export type Info = User | Assistant
 
+const UpdatedEventSchema = Schema.Struct({
+  sessionID: SessionID,
+  info: _Info,
+})
+
+const RemovedEventSchema = Schema.Struct({
+  sessionID: SessionID,
+  messageID: MessageID,
+})
+
+const PartUpdatedEventSchema = Schema.Struct({
+  sessionID: SessionID,
+  part: _Part,
+  time: NonNegativeInt,
+})
+
+const PartRemovedEventSchema = Schema.Struct({
+  sessionID: SessionID,
+  messageID: MessageID,
+  partID: PartID,
+})
+
 export const Event = {
   Updated: SyncEvent.define({
     type: "message.updated",
     version: 1,
     aggregate: "sessionID",
-    schema: z.object({
-      sessionID: SessionID.zod,
-      info: Info.zod,
-    }),
+    schema: UpdatedEventSchema,
   }),
   Removed: SyncEvent.define({
     type: "message.removed",
     version: 1,
     aggregate: "sessionID",
-    schema: z.object({
-      sessionID: SessionID.zod,
-      messageID: MessageID.zod,
-    }),
+    schema: RemovedEventSchema,
   }),
   PartUpdated: SyncEvent.define({
     type: "message.part.updated",
     version: 1,
     aggregate: "sessionID",
-    schema: z.object({
-      sessionID: SessionID.zod,
-      part: Part.zod,
-      time: z.number(),
-    }),
+    schema: PartUpdatedEventSchema,
   }),
   PartDelta: BusEvent.define(
     "message.part.delta",
-    z.object({
-      sessionID: SessionID.zod,
-      messageID: MessageID.zod,
-      partID: PartID.zod,
-      field: z.string(),
-      delta: z.string(),
+    Schema.Struct({
+      sessionID: SessionID,
+      messageID: MessageID,
+      partID: PartID,
+      field: Schema.String,
+      delta: Schema.String,
     }),
   ),
   PartRemoved: SyncEvent.define({
     type: "message.part.removed",
     version: 1,
     aggregate: "sessionID",
-    schema: z.object({
-      sessionID: SessionID.zod,
-      messageID: MessageID.zod,
-      partID: PartID.zod,
-    }),
+    schema: PartRemovedEventSchema,
   }),
 }
 
@@ -649,7 +675,7 @@ export type WithParts = {
 
 const Cursor = Schema.Struct({
   id: MessageID,
-  time: Schema.Number,
+  time: Schema.Finite.check(Schema.isGreaterThanOrEqualTo(0)),
 })
 type Cursor = typeof Cursor.Type
 
@@ -666,6 +692,17 @@ export const cursor = {
 
 // kilocode_change start - strip bloated metadata fields from stored parts to prevent multi-MB payloads
 // This handles both legacy data that was stored with full file contents and keeps the API response lean.
+function stripPatch(value: unknown) {
+  if (typeof value !== "string") return undefined
+  if (Buffer.byteLength(value) > Snapshot.MAX_DIFF_SIZE) return undefined
+  return value
+}
+
+function withPatch(value: unknown) {
+  const kept = stripPatch(value)
+  return kept ? { patch: kept } : {}
+}
+
 export function stripPartMetadata(part: Part): Part {
   // kilocode_change - exported for testing
   if (part.type !== "tool") return part
@@ -677,20 +714,41 @@ export function stripPartMetadata(part: Part): Part {
   let changed = false
   let next = meta
 
-  // Strip edit tool's filediff.before/after (full file contents)
-  if (meta.filediff && (meta.filediff.before || meta.filediff.after)) {
-    const { before, after, ...rest } = meta.filediff
-    next = { ...next, filediff: rest }
+  if (meta.diff !== undefined) {
+    const { diff, ...rest } = next
+    next = rest
     changed = true
   }
 
-  // Strip apply_patch tool's files[].before/after (full file contents per file)
-  if (Array.isArray(meta.files) && meta.files.length > 0 && meta.files[0]?.before !== undefined) {
+  // Strip edit/write tool filediff.before/after (full file contents) and cap patches.
+  if (meta.filediff) {
+    const { before, after, patch, ...rest } = meta.filediff
+    next = { ...next, filediff: { ...rest, ...withPatch(patch) } }
+    changed = true
+  }
+
+  // Strip apply_patch tool's files[].before/after (full file contents per file) and cap per-file patches.
+  if (Array.isArray(meta.files) && meta.files.length > 0) {
     next = {
       ...next,
       files: meta.files.map((f: Record<string, unknown>) => {
-        const { before, after, ...rest } = f
-        return rest
+        const { before, after, patch, diff, ...rest } = f
+        const kept = stripPatch(patch) ?? stripPatch(diff)
+        return { ...rest, ...(kept ? { patch: kept } : {}) }
+      }),
+    }
+    changed = true
+  }
+
+  if (Array.isArray(meta.results) && meta.results.length > 0) {
+    next = {
+      ...next,
+      results: meta.results.map((r: Record<string, unknown>) => {
+        const { diff, ...rest } = r
+        if (!r.filediff || typeof r.filediff !== "object") return rest
+        const fd = r.filediff as Record<string, unknown>
+        const { before, after, patch, ...file } = fd
+        return { ...rest, filediff: { ...file, ...withPatch(patch) } }
       }),
     }
     changed = true
@@ -817,7 +875,7 @@ export const toModelMessagesEffect = Effect.fnUntraced(function* (
       return {
         type: "content",
         value: [
-          { type: "text", text: outputObject.text },
+          ...(outputObject.text ? [{ type: "text", text: outputObject.text }] : []),
           ...attachments.map((attachment) => ({
             type: "media",
             mediaType: attachment.mime,
@@ -900,7 +958,9 @@ export const toModelMessagesEffect = Effect.fnUntraced(function* (
         parts: [],
       }
       for (const part of msg.parts) {
-        if (part.type === "text")
+        // kilocode_change start - keep local UI warnings out of future prompts
+        if (part.type === "text" && !part.ignored)
+          // kilocode_change end
           assistantMessage.parts.push({
             type: "text",
             text: part.text,
@@ -983,10 +1043,18 @@ export const toModelMessagesEffect = Effect.fnUntraced(function* (
             })
         }
         if (part.type === "reasoning") {
+          if (differentModel) {
+            if (part.text.trim().length > 0)
+              assistantMessage.parts.push({
+                type: "text",
+                text: part.text,
+              })
+            continue
+          }
           assistantMessage.parts.push({
             type: "reasoning",
             text: part.text,
-            ...(differentModel ? {} : { providerMetadata: part.metadata }),
+            providerMetadata: part.metadata,
           })
         }
       }

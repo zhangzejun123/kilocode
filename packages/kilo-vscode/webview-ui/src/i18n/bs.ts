@@ -137,6 +137,16 @@ export const dict = {
   "provider.connect.apiKey.label": "{{provider}} API ključ",
   "provider.connect.apiKey.placeholder": "API ključ",
   "provider.connect.apiKey.required": "API ključ je obavezan",
+  "provider.connect.prompt.required": "{{field}} je obavezno",
+  "provider.connect.azure.endpointType.label": "Odaberite konfiguraciju krajnje tačke za Azure",
+  "provider.connect.azure.endpointType.resourceName.label": "Ime resursa",
+  "provider.connect.azure.endpointType.resourceName.hint": "Izgradite krajnju tačku iz imena vašeg Azure resursa",
+  "provider.connect.azure.endpointType.baseURL.label": "Puni URL krajnje tačke",
+  "provider.connect.azure.endpointType.baseURL.hint": "Koristite prilagođenu Azure OpenAI krajnju tačku",
+  "provider.connect.azure.resourceName.label": "Ime Azure resursa",
+  "provider.connect.azure.resourceName.placeholder": "npr. my-models",
+  "provider.connect.azure.baseURL.label": "URL krajnje tačke za Azure OpenAI",
+  "provider.connect.azure.baseURL.placeholder": "npr. https://my-models.openai.azure.com/openai",
   "provider.connect.opencodeZen.line1":
     "OpenCode Zen ti daje pristup kuriranom skupu pouzdanih, optimizovanih modela za coding agente.",
   "provider.connect.opencodeZen.line2":
@@ -262,6 +272,12 @@ export const dict = {
   "prompt.action.send.blocked": "Prvo odgovorite ili odbacite pitanje na čekanju",
   "prompt.action.stop": "Zaustavi",
   "prompt.action.enhance": "Poboljšaj prompt",
+  "prompt.action.autoApprove.enable": "Uključi automatsko odobravanje",
+  "prompt.action.autoApprove.disable": "Isključi automatsko odobravanje",
+  "prompt.action.autoApprove.enabled":
+    "Automatsko odobravanje je uključeno. Zahtjevi za dozvole bit će automatski odobreni.",
+  "prompt.action.autoApprove.disabled":
+    "Automatsko odobravanje je isključeno. Kliknite za automatsko odobravanje zahtjeva za dozvole.",
   "prompt.action.resetModel": "Resetuj model na zadani",
   "prompt.action.enhanceDescription":
     "Dugme 'Poboljšaj prompt' pomaže poboljšati vaš zahtjev pružajući dodatni kontekst, pojašnjenje ili preformulaciju. Pokušajte upisati zahtjev ovdje i ponovo kliknite na dugme da vidite kako funkcioniše.",
@@ -541,7 +557,38 @@ export const dict = {
   "session.new.worktree.mainWithBranch": "Glavna grana ({{branch}})",
   "session.new.worktree.create": "Kreiraj novi worktree",
   "session.new.lastModified": "Posljednja izmjena",
-
+  "sidebar.session.newSession": "Nova Sesija",
+  "sidebar.session.newSession.tooltip": "Započnite novi razgovor držeći trenutnu sesiju netaknutom.",
+  "sidebar.session.newSession.disabled":
+    "Ova sesija je već nova. Započnite razgovor ili umjesto toga kreirajte worktree.",
+  "sidebar.session.newWorktree": "Novi Worktree",
+  "sidebar.session.newWorktree.tooltip":
+    "Kreirajte izolovani git worktree za sigurno eksperimentisanje, odvojeno čuvanje izmjena i pokretanje paralelnih sesija bez prekidanja vaše trenutne grane.",
+  "sidebar.session.configureWorktree.tooltip":
+    "Otvorite Agent Manager worktree dijalog za konfigurisanje novog worktree-a prije kreiranja.",
+  "sidebar.session.newWorktree.from": "Novi Worktree od",
+  "sidebar.session.currentBranch": "trenutna grana",
+  "sidebar.session.moveToWorktree": "Premjesti u Worktree",
+  "sidebar.session.moveToWorktree.tooltip.empty":
+    "Premjestite ovaj razgovor i vaše trenutne lokalne izmjene u namjenski worktree za izolovani radni nastavak.",
+  "sidebar.session.moveToWorktree.tooltip.one":
+    "Premjesti ovaj razgovor i 1 izmijenjen fajl u namjenski worktree za izolovani naknadni rad.",
+  "sidebar.session.moveToWorktree.tooltip.other":
+    "Premjesti ovaj razgovor i {{files}} izmijenjenih fajlova u namjenski worktree za izolovani naknadni rad.",
+  "sidebar.session.showChanges.tooltip.empty": "Otvorite prikaz izmjena da pregledate trenutno radno stablo.",
+  "sidebar.session.showChanges.tooltip.one":
+    "1 fajl izmijenjen · +{{additions}} -{{deletions}}. Otvori pregled izmjena.",
+  "sidebar.session.showChanges.tooltip.other":
+    "{{files}} fajlova izmijenjeno · +{{additions}} -{{deletions}}. Otvori pregled izmjena.",
+  "sidebar.session.agentManager.tooltip":
+    "Otvorite Agent Manager za potpuni pregled paralelnih sesija i worktree-a, kako biste mogli koordinirati dugotrajne zadatke na jednom mjestu.",
+  "sidebar.session.openAgentManager": "Otvori Agent Manager",
+  "sidebar.session.progress.capturing": "Snimanje izmjena...",
+  "sidebar.session.progress.creating": "Kreiranje worktree-a...",
+  "sidebar.session.progress.setup": "Pokretanje podešavanja...",
+  "sidebar.session.progress.transferring": "Prijenos izmjena...",
+  "sidebar.session.progress.forking": "Pokretanje sesije...",
+  "sidebar.session.progress.failed": "Nije uspjelo nastavljanje u worktree-u",
   "session.header.search.placeholder": "Pretraži {{project}}",
   "session.header.searchFiles": "Pretraži datoteke",
   "session.header.openIn": "Otvori u",
@@ -714,6 +761,44 @@ export const dict = {
   "settings.general.sounds.permissions.description": "Pusti zvuk kada je potrebna dozvola",
   "settings.general.sounds.errors.title": "Greške",
   "settings.general.sounds.errors.description": "Pusti zvuk kada dođe do greške",
+
+  "prompt.action.indexing": "Postavke indeksiranja",
+  "settings.indexing.dimension.description":
+    "Ostavite prazno za automatsko prepoznavanje dimenzije embeddinga iz modela.",
+  "settings.indexing.dimension.placeholder": "Auto",
+  "settings.indexing.dimension.title": "Dimenzija vektora",
+  "settings.indexing.enable.description": "Uključite ili isključite semantičko indeksiranje baze koda.",
+  "settings.indexing.enable.title": "Omogući indeksiranje",
+  "settings.indexing.globalEnable.title": "Omogući globalno",
+  "settings.indexing.globalEnable.description": "Omogući indeksiranje za svaki radni prostor.",
+  "settings.indexing.projectEnable.title": "Omogući za ovaj projekat",
+  "settings.indexing.projectEnable.description":
+    "Omogući indeksiranje za ovaj radni prostor kada je globalno indeksiranje isključeno.",
+  "settings.indexing.projectEnable.disabledTooltip":
+    "Globalno indeksiranje je omogućeno, tako da je ovaj projekat već obuhvaćen.",
+  "settings.indexing.lancedbDirectory.description": "Opcionalni direktorij za lokalno LanceDB skladište.",
+  "settings.indexing.lancedbDirectory.placeholder": "Ostavite prazno za zadano",
+  "settings.indexing.lancedbDirectory.title": "LanceDB direktorij",
+  "settings.indexing.model.description": "Prepišite zadani model embeddinga za odabranog provajdera.",
+  "settings.indexing.model.title": "Model embeddinga",
+  "settings.indexing.provider.description":
+    "Odaberite provajdera koji se koristi za generiranje embeddinga za semantičku pretragu.",
+  "settings.indexing.kiloModel.title": "Preset Kilo modela",
+  "settings.indexing.kiloModel.description": "Odaberite podržani model embeddinga hostovan na Kilo.",
+  "settings.indexing.kiloSignIn.title": "Potrebna je prijava na Kilo",
+  "settings.indexing.kiloSignIn.description": "Prijavite se na Kilo za korištenje hostovanih embeddinga.",
+  "settings.indexing.provider.title": "Provajder embeddinga",
+  "settings.indexing.providerField.description": "Postavka veze specifična za provajdera.",
+  "settings.indexing.qdrantApiKey.description": "Opcionalni API ključ za Qdrant instancu.",
+  "settings.indexing.qdrantApiKey.placeholder": "Opcionalni API ključ",
+  "settings.indexing.qdrantApiKey.title": "Qdrant API ključ",
+  "settings.indexing.qdrantUrl.description": "URL servera za Qdrant instancu.",
+  "settings.indexing.qdrantUrl.title": "Qdrant URL",
+  "settings.indexing.status.title": "Status",
+  "settings.indexing.title": "Indeksiranje",
+  "settings.indexing.tuning.description": "Napredni parametar pretrage i grupiranja.",
+  "settings.indexing.vectorStore.description": "Odaberite gdje se pohranjuju indeksirani embeddingi.",
+  "settings.indexing.vectorStore.title": "Vektorsko skladište",
 
   "settings.shortcuts.title": "Prečice na tastaturi",
   "settings.shortcuts.reset.button": "Vrati na podrazumijevano",
@@ -1113,6 +1198,8 @@ export const dict = {
   "settings.autocomplete.smartKeybinding.description": "Koristi pametnu prečicu za pokretanje inline zadataka",
   "settings.autocomplete.chatAutocomplete.title": "Omogući automatsko dovršavanje chata",
   "settings.autocomplete.chatAutocomplete.description": "Prikaži prijedloge automatskog dovršavanja u polju chata",
+  "settings.autocomplete.modelsHint":
+    "Da odaberete koji se model koristi za automatsko dovršavanje, pogledajte postavke Modela.",
   "settings.notifications.agent.title": "Završetak agenta",
   "settings.notifications.agent.description": "Prikaži obavijest kada agent završi zadatak",
   "settings.notifications.permissions.title": "Zahtjevi za dozvolu",
@@ -1141,8 +1228,14 @@ export const dict = {
   "settings.experimental.pasteSummary.description": "Ne sažimaj veliki zalijepljeni sadržaj",
   "settings.experimental.batch.title": "Batch alat",
   "settings.experimental.batch.description": "Omogući batch obradu poziva alata",
+  "settings.experimental.semanticIndexing.title": "Semantic Indexing",
+  "settings.experimental.semanticIndexing.description":
+    "Enable semantic codebase indexing and the semantic_search tool. Requires indexing configuration.",
   "settings.experimental.codebaseSearch.title": "Pretraga koda",
   "settings.experimental.codebaseSearch.description": "Omogući AI pretragu prirodnim jezikom kroz bazu koda",
+  "settings.experimental.agentManagerTool.title": "Agent Manager alat",
+  "settings.experimental.agentManagerTool.description":
+    "Dozvoli agentima da pokreću lokalne Agent Manager sesije i worktree sesije iz poziva alata",
   "settings.experimental.continueOnDeny.title": "Nastavi pri odbijanju",
   "settings.experimental.continueOnDeny.description": "Nastavi petlju agenta kada je dozvola odbijena",
   "settings.experimental.mcpTimeout.title": "MCP istek vremena (ms)",
@@ -1340,6 +1433,15 @@ export const dict = {
   "settings.display.layout.description": "Način rasporeda za sučelje chata",
   "settings.display.layout.auto": "Automatski",
   "settings.display.layout.stretch": "Rastegni",
+  "settings.display.fontSize.title": "Veličina fonta",
+  "settings.display.fontSize.description": "Prilagodite veličinu fonta za Kilo webview UI nezavisno od VS Code-a.",
+  "settings.display.reasoningAutoCollapse.title": "Automatski sažmi razmišljanje",
+  "settings.display.reasoningAutoCollapse.description":
+    "Sažima blokove razmišljanja nakon što ih agent završi pisati. Ostavite isključeno da razmišljanje ostane prošireno, osim ako ga ručno sažmete.",
+  "settings.display.terminalCommand.title": "Terminal Command Blocks",
+  "settings.display.terminalCommand.description": "Choose whether terminal command blocks start expanded or collapsed.",
+  "settings.display.terminalCommand.expanded": "Expanded",
+  "settings.display.terminalCommand.collapsed": "Collapsed",
   "settings.providers.defaultModel.title": "Zadani model",
   "settings.providers.defaultModel.description": "Primarni model za razgovore",
   "settings.providers.smallModel.title": "Mali model",
@@ -1347,6 +1449,7 @@ export const dict = {
     "Lagani model za generiranje naslova, commit poruka, poboljšanje promptova i druge brze zadatke",
   "settings.providers.disabled": "Onemogućeni pružatelji",
   "settings.providers.disabled.description": "Pružatelji za skrivanje s popisa",
+  "settings.providers.disabled.enable": "Omogući",
   "settings.providers.enabled": "Omogućeni pružatelji (bijela lista)",
   "settings.providers.enabled.description": "Ako je postavljeno, samo ovi pružatelji će biti dostupni",
   "settings.providers.notSet": "Nije postavljeno (koristi zadano servera)",
@@ -1466,4 +1569,28 @@ export const dict = {
   "notifications.action.close": "Zatvori",
   "notifications.action.tryModel": "Probaj {{model}}",
   "notifications.action.tryModelGeneric": "Probaj model",
+  "diffViewer.source.workspace.label": "Grana",
+  "diffViewer.source.workspace.tooltip":
+    "Sve promjene na ovoj grani u poređenju s osnovnom granom. Uključuje nekomitovane datoteke (staged, unstaged, nepraćene) i lokalne commitove koji još nisu u osnovi.",
+  "diffViewer.source.staged.label": "Pripremljeno",
+  "diffViewer.source.staged.tooltip":
+    "Datoteke s promjenama koje ste dodali u git pripremno područje (`git add`), kako će se pojaviti u sljedećem commitu.",
+  "diffViewer.source.unstaged.label": "Nepripremljeno",
+  "diffViewer.source.unstaged.tooltip":
+    "Datoteke izmijenjene u radnom stablu ali još nisu pripremljene, plus nepraćene (nove) datoteke.",
+  "diffViewer.source.session.label": "Sesija",
+  "diffViewer.source.session.tooltip":
+    "Datoteke koje je Kilo promijenio tokom trenutne sesije, na osnovu snapshota po koraku. Resetuje se kada pokrenete novu sesiju.",
+  "diffViewer.group.session": "Sesija",
+  "diffViewer.group.git": "Git",
+  "diffViewer.notice.snapshotsDisabled":
+    "Snapshotovi su onemogućeni za ovaj repozitorij. Uredite konfiguracijske datoteke da biste prikazali promjene sesije.",
+
+  "diffViewer.baseBranch.auto": "Default",
+  "diffViewer.baseBranch.default": "Default",
+  "diffViewer.baseBranch.remote": "Remote",
+  "diffViewer.baseBranch.search": "Search branches",
+  "diffViewer.baseBranch.empty": "No matching branches",
+  "diffViewer.baseBranch.loading": "Loading branches…",
+  "diffViewer.baseBranch.none": "—",
 }

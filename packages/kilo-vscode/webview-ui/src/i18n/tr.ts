@@ -137,6 +137,16 @@ export const dict = {
   "provider.connect.apiKey.label": "{{provider}} API anahtarı",
   "provider.connect.apiKey.placeholder": "API anahtarı",
   "provider.connect.apiKey.required": "API anahtarı gerekli",
+  "provider.connect.prompt.required": "{{field}} zorunludur",
+  "provider.connect.azure.endpointType.label": "Azure uç nokta yapılandırmasını seçin",
+  "provider.connect.azure.endpointType.resourceName.label": "Kaynak adı",
+  "provider.connect.azure.endpointType.resourceName.hint": "Azure kaynak adınızdan uç nokta oluşturun",
+  "provider.connect.azure.endpointType.baseURL.label": "Tam uç nokta URL'si",
+  "provider.connect.azure.endpointType.baseURL.hint": "Özel bir Azure OpenAI uç noktası kullanın",
+  "provider.connect.azure.resourceName.label": "Azure kaynak adı",
+  "provider.connect.azure.resourceName.placeholder": "örn. my-models",
+  "provider.connect.azure.baseURL.label": "Azure OpenAI uç nokta URL'si",
+  "provider.connect.azure.baseURL.placeholder": "örn. https://my-models.openai.azure.com/openai",
   "provider.connect.opencodeZen.line1":
     "OpenCode Zen, kodlama ajanları için seçilmiş güvenilir optimize edilmiş modellere erişim sağlar.",
   "provider.connect.opencodeZen.line2":
@@ -261,6 +271,11 @@ export const dict = {
   "prompt.action.send.blocked": "Bekleyen soruyu önce yanıtlayın veya kapatın",
   "prompt.action.stop": "Durdur",
   "prompt.action.enhance": "Komutu geliştir",
+  "prompt.action.indexing": "İndeksleme ayarları",
+  "prompt.action.autoApprove.enable": "Otomatik onayı etkinleştir",
+  "prompt.action.autoApprove.disable": "Otomatik onayı devre dışı bırak",
+  "prompt.action.autoApprove.enabled": "Otomatik onay etkin. İzin istekleri otomatik olarak onaylanacak.",
+  "prompt.action.autoApprove.disabled": "Otomatik onay devre dışı. İzin isteklerini otomatik onaylamak için tıklayın.",
   "prompt.action.resetModel": "Modeli varsayılana sıfırla",
   "prompt.action.enhanceDescription":
     "'Komutu Geliştir' düğmesi, ek bağlam, açıklama veya yeniden ifadelendirme sağlayarak komutunuzu iyileştirmeye yardımcı olur. Buraya bir komut yazıp düğmeye tekrar tıklayarak nasıl çalıştığını görebilirsiniz.",
@@ -541,7 +556,38 @@ export const dict = {
   "session.new.worktree.mainWithBranch": "Ana dal ({{branch}})",
   "session.new.worktree.create": "Yeni çalışma ağacı oluştur",
   "session.new.lastModified": "Son değişiklik",
-
+  "sidebar.session.newSession": "Yeni Oturum",
+  "sidebar.session.newSession.tooltip": "Mevcut oturumu koruyarak yeni bir konuşma başlatın.",
+  "sidebar.session.newSession.disabled":
+    "Bu oturum zaten yeni. Sohbet etmeye başlayın veya bunun yerine bir worktree oluşturun.",
+  "sidebar.session.newWorktree": "Yeni Worktree",
+  "sidebar.session.newWorktree.tooltip":
+    "Güvenli bir şekilde deneme yapmak, değişiklikleri ayrı tutmak ve mevcut dalınızı kesintiye uğratmadan paralel oturumlar çalıştırmak için izole bir git worktree oluşturun.",
+  "sidebar.session.configureWorktree.tooltip":
+    "Oluşturmadan önce yeni bir worktree yapılandırmak için Agent Manager worktree iletişim kutusunu açın.",
+  "sidebar.session.newWorktree.from": "Şuradan Yeni Worktree:",
+  "sidebar.session.currentBranch": "mevcut dal",
+  "sidebar.session.moveToWorktree": "Worktree'ye Taşı",
+  "sidebar.session.moveToWorktree.tooltip.empty":
+    "İzole bir takip çalışması için bu konuşmayı ve mevcut yerel değişikliklerinizi özel bir worktree'ye taşıyın.",
+  "sidebar.session.moveToWorktree.tooltip.one":
+    "Bu konuşmayı ve değiştirilen 1 dosyayı, izole edilmiş takip çalışmaları için özel bir worktree'ye taşıyın.",
+  "sidebar.session.moveToWorktree.tooltip.other":
+    "Bu konuşmayı ve değiştirilen {{files}} dosyayı, izole edilmiş takip çalışmaları için özel bir worktree'ye taşıyın.",
+  "sidebar.session.showChanges.tooltip.empty": "Mevcut çalışma ağacını incelemek için değişiklikler görünümünü açın.",
+  "sidebar.session.showChanges.tooltip.one":
+    "1 dosya değiştirildi · +{{additions}} -{{deletions}}. Değişiklikler görünümünü aç.",
+  "sidebar.session.showChanges.tooltip.other":
+    "{{files}} dosya değiştirildi · +{{additions}} -{{deletions}}. Değişiklikler görünümünü aç.",
+  "sidebar.session.agentManager.tooltip":
+    "Paralel oturumların ve worktree'lerin tam bir genel görünümü için Agent Manager'ı açın, böylece uzun süren görevleri tek bir yerden koordine edebilirsiniz.",
+  "sidebar.session.openAgentManager": "Agent Manager'ı Aç",
+  "sidebar.session.progress.capturing": "Değişiklikler yakalanıyor...",
+  "sidebar.session.progress.creating": "Worktree oluşturuluyor...",
+  "sidebar.session.progress.setup": "Kurulum çalıştırılıyor...",
+  "sidebar.session.progress.transferring": "Değişiklikler aktarılıyor...",
+  "sidebar.session.progress.forking": "Oturum başlatılıyor...",
+  "sidebar.session.progress.failed": "Worktree'de devam edilemedi",
   "session.header.search.placeholder": "{{project}} ara",
   "session.header.searchFiles": "Dosya ara",
   "session.header.openIn": "Aç",
@@ -1001,6 +1047,37 @@ export const dict = {
   "settings.autocomplete.model.description": "Satır içi (inline) kod tamamlamaları için kullanılacak modeli seçin",
   "settings.notifications.title": "Bildirimler",
   "settings.context.title": "Bağlam",
+  "settings.indexing.title": "İndeksleme",
+  "settings.indexing.status.title": "Durum",
+  "settings.indexing.enable.title": "İndekslemeyi etkinleştir",
+  "settings.indexing.enable.description": "Anlamsal kod tabanı indekslemeyi açın veya kapatın.",
+  "settings.indexing.globalEnable.title": "Genel olarak etkinleştir",
+  "settings.indexing.globalEnable.description": "Her çalışma alanı için dizine eklemeyi etkinleştir.",
+  "settings.indexing.projectEnable.title": "Bu proje için etkinleştir",
+  "settings.indexing.projectEnable.description":
+    "Genel dizine ekleme kapalı olduğunda bu çalışma alanı için dizine eklemeyi etkinleştir.",
+  "settings.indexing.projectEnable.disabledTooltip":
+    "Küresel indeksleme etkinleştirildi, bu nedenle bu proje zaten kapsanıyor.",
+  "settings.indexing.provider.title": "Yerleştirme sağlayıcısı",
+  "settings.indexing.provider.description":
+    "Anlamsal arama için yerleştirmeleri oluşturmak amacıyla kullanılacak sağlayıcıyı seçin.",
+  "settings.indexing.model.title": "Yerleştirme modeli",
+  "settings.indexing.model.description": "Seçili sağlayıcı için varsayılan yerleştirme modelini geçersiz kılın.",
+  "settings.indexing.dimension.title": "Vektör boyutu",
+  "settings.indexing.dimension.description": "Modelden yerleştirme boyutunu otomatik algılamak için boş bırakın.",
+  "settings.indexing.dimension.placeholder": "Otomatik",
+  "settings.indexing.providerField.description": "Sağlayıcıya özel bağlantı ayarı.",
+  "settings.indexing.vectorStore.title": "Vektör deposu",
+  "settings.indexing.vectorStore.description": "İndekslenen yerleştirmelerin nerede saklanacağını seçin.",
+  "settings.indexing.lancedbDirectory.title": "LanceDB dizini",
+  "settings.indexing.lancedbDirectory.description": "Yerel LanceDB deposu için isteğe bağlı dizin.",
+  "settings.indexing.lancedbDirectory.placeholder": "Varsayılan için boş bırakın",
+  "settings.indexing.qdrantUrl.title": "Qdrant URL",
+  "settings.indexing.qdrantUrl.description": "Qdrant örneği için sunucu URL'si.",
+  "settings.indexing.qdrantApiKey.title": "Qdrant API anahtarı",
+  "settings.indexing.qdrantApiKey.description": "Qdrant örneği için isteğe bağlı API anahtarı.",
+  "settings.indexing.qdrantApiKey.placeholder": "İsteğe bağlı API anahtarı",
+  "settings.indexing.tuning.description": "Gelişmiş arama ve toplu işlem parametresi.",
 
   "settings.experimental.title": "Deneysel",
   "settings.language.title": "Dil",
@@ -1110,6 +1187,8 @@ export const dict = {
   "settings.autocomplete.smartKeybinding.description": "Satır içi görevleri tetiklemek için akıllı tuş ataması kullan",
   "settings.autocomplete.chatAutocomplete.title": "Sohbet metin alanı otomatik tamamlamasını etkinleştir",
   "settings.autocomplete.chatAutocomplete.description": "Sohbet metin alanında otomatik tamamlama önerileri göster",
+  "settings.autocomplete.modelsHint":
+    "Otomatik tamamlama için kullanılacak modeli seçmek için Modeller ayarlarına bakın.",
 
   "settings.notifications.agent.title": "Ajan Tamamlanması",
   "settings.notifications.agent.description": "Ajan bir görevi tamamladığında bildirim göster",
@@ -1140,9 +1219,15 @@ export const dict = {
   "settings.experimental.pasteSummary.description": "Büyük yapıştırılan içeriği özetleme",
   "settings.experimental.batch.title": "Toplu Araç",
   "settings.experimental.batch.description": "Birden fazla araç çağrısının toplu işlenmesini etkinleştir",
+  "settings.experimental.semanticIndexing.title": "Semantic Indexing",
+  "settings.experimental.semanticIndexing.description":
+    "Enable semantic codebase indexing and the semantic_search tool. Requires indexing configuration.",
   "settings.experimental.codebaseSearch.title": "Kod Tabanı Araması",
   "settings.experimental.codebaseSearch.description":
     "Kod tabanınız genelinde yapay zeka destekli doğal dil aramasını etkinleştir",
+  "settings.experimental.agentManagerTool.title": "Agent Manager Aracı",
+  "settings.experimental.agentManagerTool.description":
+    "Ajanların bir araç çağrısından Agent Manager yerel oturumları ve worktree oturumları başlatmasına izin ver",
   "settings.experimental.continueOnDeny.title": "Reddetme Durumunda Devam Et",
   "settings.experimental.continueOnDeny.description": "Bir izin reddedildiğinde ajan döngüsüne devam et",
   "settings.experimental.mcpTimeout.title": "MCP Zaman Aşımı (ms)",
@@ -1306,6 +1391,15 @@ export const dict = {
   "settings.display.layout.description": "Sohbet arayüzü için düzen modu",
   "settings.display.layout.auto": "Otomatik",
   "settings.display.layout.stretch": "Genişlet",
+  "settings.display.fontSize.title": "Yazı Tipi Boyutu",
+  "settings.display.fontSize.description": "Kilo webview UI yazı tipi boyutunu VS Code'dan bağımsız olarak ayarlayın.",
+  "settings.display.reasoningAutoCollapse.title": "Akıl yürütmeyi otomatik daralt",
+  "settings.display.reasoningAutoCollapse.description":
+    "Ajan yazmayı bitirdikten sonra akıl yürütme bloklarını daraltır. Manuel olarak daraltmadığınız sürece akıl yürütmenin geniş kalması için kapalı bırakın.",
+  "settings.display.terminalCommand.title": "Terminal Command Blocks",
+  "settings.display.terminalCommand.description": "Choose whether terminal command blocks start expanded or collapsed.",
+  "settings.display.terminalCommand.expanded": "Expanded",
+  "settings.display.terminalCommand.collapsed": "Collapsed",
 
   "settings.providers.defaultModel.title": "Varsayılan Model",
   "settings.providers.defaultModel.description": "Sohbetler için birincil model",
@@ -1317,6 +1411,7 @@ export const dict = {
     "Belirli modlar için varsayılan modeli geçersiz kılın. Ayarlanmadıysa genel varsayılan model kullanılır.",
   "settings.providers.disabled": "Devre Dışı Sağlayıcılar",
   "settings.providers.disabled.description": "Sağlayıcı listesinde gizlenecek sağlayıcılar",
+  "settings.providers.disabled.enable": "Etkinleştir",
   "settings.providers.enabled": "Etkin Sağlayıcılar (İzin Listesi)",
   "settings.providers.enabled.description":
     "Ayarlanırsa yalnızca bu sağlayıcılar kullanılabilir olacak (özel izin listesi)",
@@ -1443,6 +1538,10 @@ export const dict = {
   "notifications.action.close": "Kapat",
   "notifications.action.tryModel": "Dene {{model}}",
   "notifications.action.tryModelGeneric": "Modeli Dene",
+  "settings.indexing.kiloModel.title": "Kilo model önayarı",
+  "settings.indexing.kiloModel.description": "Desteklenen bir Kilo-hosted embeddings modeli seçin.",
+  "settings.indexing.kiloSignIn.title": "Kilo oturumu açmak gerekiyor",
+  "settings.indexing.kiloSignIn.description": "Hosted embeddings kullanmak için Kilo'da oturum açın.",
   // Missing translations - English fallbacks until translated
   "profile.switchingAccount": "Hesap değiştiriliyor…",
   "settings.agentBehaviour.createMode": "Yeni Mod Oluştur",
@@ -1481,4 +1580,28 @@ export const dict = {
   "settings.agentBehaviour.permissions.hint":
     "Kurallar sırayla değerlendirilir — son eşleşen kural kazanır. Bu, CLI arka ucundan çözümlenen kural kümesidir.",
   "settings.agentBehaviour.editMode.save": "Tamam",
+  "diffViewer.source.workspace.label": "Dal",
+  "diffViewer.source.workspace.tooltip":
+    "Bu daldaki tüm değişiklikler, temel dal ile karşılaştırıldığında. Commitlenmemiş dosyaları (staged, unstaged, izlenmeyen) ve temelde henüz bulunmayan yerel commitleri içerir.",
+  "diffViewer.source.staged.label": "Staged",
+  "diffViewer.source.staged.tooltip":
+    "git'in hazırlama alanına eklediğin (`git add`) değişiklikleri içeren dosyalar. Bir sonraki commit'te görüneceği gibi.",
+  "diffViewer.source.unstaged.label": "Unstaged",
+  "diffViewer.source.unstaged.tooltip":
+    "Çalışma ağacında değiştirilmiş ancak henüz staged edilmemiş dosyalar, artı takip edilmeyen (yeni) dosyalar.",
+  "diffViewer.source.session.label": "Oturum",
+  "diffViewer.source.session.tooltip":
+    "Geçerli oturum sırasında Kilo tarafından değiştirilen dosyalar, tur başı anlık görüntülere dayanır. Yeni bir oturum başlatıldığında sıfırlanır.",
+  "diffViewer.group.session": "Oturum",
+  "diffViewer.group.git": "Git",
+  "diffViewer.notice.snapshotsDisabled":
+    "Bu depoda anlık görüntüler devre dışı bırakılmıştır. Oturum değişikliklerini görüntülemek için yapılandırma dosyalarınızı düzenleyin.",
+
+  "diffViewer.baseBranch.auto": "Default",
+  "diffViewer.baseBranch.default": "Default",
+  "diffViewer.baseBranch.remote": "Remote",
+  "diffViewer.baseBranch.search": "Search branches",
+  "diffViewer.baseBranch.empty": "No matching branches",
+  "diffViewer.baseBranch.loading": "Loading branches…",
+  "diffViewer.baseBranch.none": "—",
 }

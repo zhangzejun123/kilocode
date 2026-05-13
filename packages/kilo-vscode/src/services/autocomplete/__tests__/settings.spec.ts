@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const state = new Map<string, unknown>()
-const update = vi.fn(async (key: string, value: unknown) => {
+const update = vi.fn((key: string, value: unknown) => {
   state.set(key, value)
 })
 
@@ -31,36 +31,34 @@ describe("autocomplete settings", () => {
     expect(buildAutocompleteSettingsMessage().settings.model).toBe("inception/mercury-edit")
   })
 
-  it("persists supported model updates", async () => {
-    const post = vi.fn()
-    const { routeAutocompleteMessage } = await import("../settings")
+  it("defaults to codestral when no model is set", async () => {
+    const { buildAutocompleteSettingsMessage } = await import("../settings")
 
-    await routeAutocompleteMessage(
-      { type: "updateAutocompleteSetting", key: "model", value: "inception/mercury-edit" },
-      post,
-    )
+    expect(buildAutocompleteSettingsMessage().settings.model).toBe("mistralai/codestral-2508")
+  })
 
-    expect(update).toHaveBeenCalledWith("model", "inception/mercury-edit", 1)
-    expect(post).toHaveBeenCalledWith(expect.objectContaining({ type: "autocompleteSettingsLoaded" }))
+  it("defaults to codestral when stored model is no longer supported", async () => {
+    state.set("model", "some/removed-model")
+    const { buildAutocompleteSettingsMessage } = await import("../settings")
+
+    expect(buildAutocompleteSettingsMessage().settings.model).toBe("mistralai/codestral-2508")
+  })
+
+  it("validates supported model updates", async () => {
+    const { validAutocompleteSetting } = await import("../settings")
+
+    expect(validAutocompleteSetting("model", "inception/mercury-edit")).toBe(true)
   })
 
   it("rejects unsupported model updates", async () => {
-    const post = vi.fn()
-    const { routeAutocompleteMessage } = await import("../settings")
+    const { validAutocompleteSetting } = await import("../settings")
 
-    await routeAutocompleteMessage({ type: "updateAutocompleteSetting", key: "model", value: "other/model" }, post)
-
-    expect(update).not.toHaveBeenCalled()
-    expect(post).not.toHaveBeenCalled()
+    expect(validAutocompleteSetting("model", "other/model")).toBe(false)
   })
 
   it("rejects non-boolean toggle updates", async () => {
-    const post = vi.fn()
-    const { routeAutocompleteMessage } = await import("../settings")
+    const { validAutocompleteSetting } = await import("../settings")
 
-    await routeAutocompleteMessage({ type: "updateAutocompleteSetting", key: "enableAutoTrigger", value: "true" }, post)
-
-    expect(update).not.toHaveBeenCalled()
-    expect(post).not.toHaveBeenCalled()
+    expect(validAutocompleteSetting("enableAutoTrigger", "true")).toBe(false)
   })
 })

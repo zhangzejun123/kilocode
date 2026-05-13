@@ -137,6 +137,16 @@ export const dict = {
   "provider.connect.apiKey.label": "{{provider}} API ключ",
   "provider.connect.apiKey.placeholder": "API ключ",
   "provider.connect.apiKey.required": "API ключ обязателен",
+  "provider.connect.prompt.required": "{{field}} обязательно",
+  "provider.connect.azure.endpointType.label": "Выберите конфигурацию конечной точки Azure",
+  "provider.connect.azure.endpointType.resourceName.label": "Имя ресурса",
+  "provider.connect.azure.endpointType.resourceName.hint": "Создать конечную точку из имени ресурса Azure",
+  "provider.connect.azure.endpointType.baseURL.label": "Полный URL конечной точки",
+  "provider.connect.azure.endpointType.baseURL.hint": "Использовать пользовательскую конечную точку Azure OpenAI",
+  "provider.connect.azure.resourceName.label": "Имя ресурса Azure",
+  "provider.connect.azure.resourceName.placeholder": "например, my-models",
+  "provider.connect.azure.baseURL.label": "URL конечной точки Azure OpenAI",
+  "provider.connect.azure.baseURL.placeholder": "например, https://my-models.openai.azure.com/openai",
   "provider.connect.opencodeZen.line1":
     "OpenCode Zen даёт вам доступ к отобранным надёжным оптимизированным моделям для агентов программирования.",
   "provider.connect.opencodeZen.line2":
@@ -260,7 +270,13 @@ export const dict = {
   "prompt.action.send.blocked": "Сначала ответьте на ожидающий вопрос или отклоните его",
   "prompt.action.stop": "Остановить",
   "prompt.action.enhance": "Улучшить промпт",
+  "prompt.action.autoApprove.enable": "Включить автоодобрение",
+  "prompt.action.autoApprove.disable": "Отключить автоодобрение",
+  "prompt.action.autoApprove.enabled": "Автоодобрение включено. Запросы разрешений будут одобряться автоматически.",
+  "prompt.action.autoApprove.disabled":
+    "Автоодобрение отключено. Нажмите, чтобы автоматически одобрять запросы разрешений.",
   "prompt.action.resetModel": "Сбросить модель на значение по умолчанию",
+  "prompt.action.indexing": "Настройки индексации",
   "prompt.action.enhanceDescription":
     "Кнопка 'Улучшить запрос' помогает сделать ваш запрос лучше, предоставляя дополнительный контекст, уточнения или переформулировку. Попробуйте ввести запрос и снова нажать кнопку, чтобы увидеть, как это работает.",
 
@@ -538,7 +554,37 @@ export const dict = {
   "session.new.worktree.mainWithBranch": "Основная ветка ({{branch}})",
   "session.new.worktree.create": "Создать новый worktree",
   "session.new.lastModified": "Последнее изменение",
-
+  "sidebar.session.newSession": "Новая сессия",
+  "sidebar.session.newSession.tooltip": "Начать новую беседу, сохранив текущую сессию нетронутой.",
+  "sidebar.session.newSession.disabled": "Эта сессия уже новая. Начните чат или создайте worktree.",
+  "sidebar.session.newWorktree": "Новое Worktree",
+  "sidebar.session.newWorktree.tooltip":
+    "Создайте изолированное git worktree для безопасных экспериментов, разделения изменений и запуска параллельных сессий без прерывания вашей текущей ветки.",
+  "sidebar.session.configureWorktree.tooltip":
+    "Откройте диалоговое окно worktree в Agent Manager, чтобы настроить новое worktree перед созданием.",
+  "sidebar.session.newWorktree.from": "Новое Worktree из",
+  "sidebar.session.currentBranch": "текущей ветки",
+  "sidebar.session.moveToWorktree": "Перенести в Worktree",
+  "sidebar.session.moveToWorktree.tooltip.empty":
+    "Перенесите эту беседу и ваши текущие локальные изменения в выделенное worktree для изолированной последующей работы.",
+  "sidebar.session.moveToWorktree.tooltip.one":
+    "Переместить этот разговор и 1 измененный файл в выделенный worktree для изолированной дальнейшей работы.",
+  "sidebar.session.moveToWorktree.tooltip.other":
+    "Переместить этот разговор и {{files}} измененных файлов в выделенный worktree для изолированной дальнейшей работы.",
+  "sidebar.session.showChanges.tooltip.empty": "Откройте просмотр изменений, чтобы изучить текущее рабочее дерево.",
+  "sidebar.session.showChanges.tooltip.one":
+    "1 файл изменен · +{{additions}} -{{deletions}}. Открыть просмотр изменений.",
+  "sidebar.session.showChanges.tooltip.other":
+    "{{files}} файлов изменено · +{{additions}} -{{deletions}}. Открыть просмотр изменений.",
+  "sidebar.session.agentManager.tooltip":
+    "Откройте Agent Manager для полного обзора параллельных сессий и worktree, чтобы координировать длительные задачи в одном месте.",
+  "sidebar.session.openAgentManager": "Открыть Agent Manager",
+  "sidebar.session.progress.capturing": "Захват изменений...",
+  "sidebar.session.progress.creating": "Создание worktree...",
+  "sidebar.session.progress.setup": "Выполнение настройки...",
+  "sidebar.session.progress.transferring": "Перенос изменений...",
+  "sidebar.session.progress.forking": "Запуск сессии...",
+  "sidebar.session.progress.failed": "Не удалось продолжить в worktree",
   "session.header.search.placeholder": "Поиск {{project}}",
   "session.header.searchFiles": "Поиск файлов",
   "session.header.openIn": "Открыть в",
@@ -714,6 +760,42 @@ export const dict = {
   "settings.general.sounds.permissions.description": "Воспроизводить звук когда требуется разрешение",
   "settings.general.sounds.errors.title": "Ошибки",
   "settings.general.sounds.errors.description": "Воспроизводить звук когда происходит ошибка",
+
+  "settings.indexing.title": "Индексация",
+  "settings.indexing.enable.title": "Включить индексацию",
+  "settings.indexing.enable.description": "Включить или отключить семантическую индексацию кодовой базы.",
+  "settings.indexing.globalEnable.title": "Включить глобально",
+  "settings.indexing.globalEnable.description": "Включить индексирование для каждого рабочего пространства.",
+  "settings.indexing.projectEnable.title": "Включить для этого проекта",
+  "settings.indexing.projectEnable.description":
+    "Включить индексирование для этого рабочего пространства, если глобальное индексирование отключено.",
+  "settings.indexing.projectEnable.disabledTooltip":
+    "Глобальное индексирование включено, поэтому этот проект уже охвачен.",
+  "settings.indexing.status.title": "Статус",
+  "settings.indexing.provider.title": "Провайдер эмбеддингов",
+  "settings.indexing.provider.description": "Выберите провайдера для генерации эмбеддингов при семантическом поиске.",
+  "settings.indexing.kiloModel.title": "Предустановка модели Kilo",
+  "settings.indexing.kiloModel.description": "Выберите поддерживаемую модель эмбеддингов, размещенную в Kilo.",
+  "settings.indexing.kiloSignIn.title": "Требуется вход в Kilo",
+  "settings.indexing.kiloSignIn.description": "Войдите в Kilo, чтобы использовать размещенные эмбеддинги.",
+  "settings.indexing.model.title": "Модель эмбеддингов",
+  "settings.indexing.model.description": "Переопределить модель эмбеддингов по умолчанию для выбранного провайдера.",
+  "settings.indexing.dimension.title": "Размерность вектора",
+  "settings.indexing.dimension.description":
+    "Оставьте пустым для автоматического определения размерности эмбеддингов из модели.",
+  "settings.indexing.dimension.placeholder": "Авто",
+  "settings.indexing.vectorStore.title": "Векторное хранилище",
+  "settings.indexing.vectorStore.description": "Выберите, где хранить проиндексированные эмбеддинги.",
+  "settings.indexing.lancedbDirectory.title": "Директория LanceDB",
+  "settings.indexing.lancedbDirectory.description": "Необязательная директория для локального хранилища LanceDB.",
+  "settings.indexing.lancedbDirectory.placeholder": "Оставьте пустым для значения по умолчанию",
+  "settings.indexing.qdrantUrl.title": "URL Qdrant",
+  "settings.indexing.qdrantUrl.description": "URL сервера для экземпляра Qdrant.",
+  "settings.indexing.qdrantApiKey.title": "API-ключ Qdrant",
+  "settings.indexing.qdrantApiKey.description": "Необязательный API-ключ для экземпляра Qdrant.",
+  "settings.indexing.qdrantApiKey.placeholder": "Необязательный API-ключ",
+  "settings.indexing.providerField.description": "Настройка подключения, специфичная для провайдера.",
+  "settings.indexing.tuning.description": "Параметры расширенного поиска и пакетной обработки.",
 
   "settings.shortcuts.title": "Горячие клавиши",
   "settings.shortcuts.reset.button": "Сбросить к умолчаниям",
@@ -1113,6 +1195,7 @@ export const dict = {
   "settings.autocomplete.smartKeybinding.description": "Использовать умную клавишу для запуска встроенных задач",
   "settings.autocomplete.chatAutocomplete.title": "Включить автодополнение чата",
   "settings.autocomplete.chatAutocomplete.description": "Показывать предложения автодополнения в поле чата",
+  "settings.autocomplete.modelsHint": "Чтобы выбрать модель для автодополнения, см. настройки Моделей.",
   "settings.notifications.agent.title": "Завершение агента",
   "settings.notifications.agent.description": "Показать уведомление при завершении задачи агентом",
   "settings.notifications.permissions.title": "Запросы разрешений",
@@ -1141,8 +1224,14 @@ export const dict = {
   "settings.experimental.pasteSummary.description": "Не суммировать большой вставленный контент",
   "settings.experimental.batch.title": "Пакетный инструмент",
   "settings.experimental.batch.description": "Включить пакетную обработку вызовов инструментов",
+  "settings.experimental.semanticIndexing.title": "Semantic Indexing",
+  "settings.experimental.semanticIndexing.description":
+    "Enable semantic codebase indexing and the semantic_search tool. Requires indexing configuration.",
   "settings.experimental.codebaseSearch.title": "Поиск по коду",
   "settings.experimental.codebaseSearch.description": "Включить поиск на естественном языке с ИИ по всей кодовой базе",
+  "settings.experimental.agentManagerTool.title": "Инструмент Agent Manager",
+  "settings.experimental.agentManagerTool.description":
+    "Разрешить агентам запускать локальные сеансы Agent Manager и сеансы worktree через вызов инструмента",
   "settings.experimental.continueOnDeny.title": "Продолжить при отказе",
   "settings.experimental.continueOnDeny.description": "Продолжить цикл агента при отказе в разрешении",
   "settings.experimental.mcpTimeout.title": "Таймаут MCP (мс)",
@@ -1339,6 +1428,15 @@ export const dict = {
   "settings.display.layout.description": "Режим макета для интерфейса чата",
   "settings.display.layout.auto": "Авто",
   "settings.display.layout.stretch": "Растянуть",
+  "settings.display.fontSize.title": "Размер шрифта",
+  "settings.display.fontSize.description": "Настройте размер шрифта webview UI для Kilo независимо от VS Code.",
+  "settings.display.reasoningAutoCollapse.title": "Автоматически сворачивать рассуждение",
+  "settings.display.reasoningAutoCollapse.description":
+    "Сворачивает блоки рассуждения после того, как агент закончит их писать. Оставьте выключенным, чтобы рассуждение оставалось раскрытым, пока вы не свернете его вручную.",
+  "settings.display.terminalCommand.title": "Terminal Command Blocks",
+  "settings.display.terminalCommand.description": "Choose whether terminal command blocks start expanded or collapsed.",
+  "settings.display.terminalCommand.expanded": "Expanded",
+  "settings.display.terminalCommand.collapsed": "Collapsed",
   "settings.providers.defaultModel.title": "Модель по умолчанию",
   "settings.providers.defaultModel.description": "Основная модель для разговоров",
   "settings.providers.smallModel.title": "Малая модель",
@@ -1346,6 +1444,7 @@ export const dict = {
     "Лёгкая модель для генерации заголовков, сообщений коммитов, улучшения промптов и других быстрых задач",
   "settings.providers.disabled": "Отключённые провайдеры",
   "settings.providers.disabled.description": "Провайдеры для скрытия из списка",
+  "settings.providers.disabled.enable": "Включить",
   "settings.providers.enabled": "Включённые провайдеры (белый список)",
   "settings.providers.enabled.description": "Если установлено, только эти провайдеры будут доступны",
   "settings.providers.notSet": "Не задано (использовать значение сервера по умолчанию)",
@@ -1464,4 +1563,28 @@ export const dict = {
   "notifications.action.close": "Закрыть",
   "notifications.action.tryModel": "Попробовать {{model}}",
   "notifications.action.tryModelGeneric": "Попробовать модель",
+  "diffViewer.source.workspace.label": "Ветка",
+  "diffViewer.source.workspace.tooltip":
+    "Все изменения в этой ветке по сравнению с базовой. Включает незакоммиченные файлы (staged, unstaged, неотслеживаемые) и локальные коммиты, которых ещё нет в базе.",
+  "diffViewer.source.staged.label": "Проиндексировано",
+  "diffViewer.source.staged.tooltip":
+    "Файлы с изменениями, добавленные в индекс git (`git add`), как они появятся в следующем коммите.",
+  "diffViewer.source.unstaged.label": "Непроиндексировано",
+  "diffViewer.source.unstaged.tooltip":
+    "Файлы, изменённые в рабочем дереве, но ещё не проиндексированные, плюс неотслеживаемые (новые) файлы.",
+  "diffViewer.source.session.label": "Сессия",
+  "diffViewer.source.session.tooltip":
+    "Файлы, изменённые Kilo в текущей сессии, на основе снимков по ходу. Сбрасывается при начале новой сессии.",
+  "diffViewer.group.session": "Сессия",
+  "diffViewer.group.git": "Git",
+  "diffViewer.notice.snapshotsDisabled":
+    "Снимки отключены для этого репозитория. Пожалуйста, отредактируйте файлы конфигурации, чтобы отображать изменения сессии.",
+
+  "diffViewer.baseBranch.auto": "По умолчанию",
+  "diffViewer.baseBranch.default": "По умолчанию",
+  "diffViewer.baseBranch.remote": "Удалённая",
+  "diffViewer.baseBranch.search": "Поиск веток",
+  "diffViewer.baseBranch.empty": "Нет подходящих веток",
+  "diffViewer.baseBranch.loading": "Загрузка веток…",
+  "diffViewer.baseBranch.none": "—",
 }

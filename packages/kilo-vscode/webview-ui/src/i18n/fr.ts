@@ -138,6 +138,17 @@ export const dict = {
   "provider.connect.apiKey.label": "Clé API {{provider}}",
   "provider.connect.apiKey.placeholder": "Clé API",
   "provider.connect.apiKey.required": "La clé API est requise",
+  "provider.connect.prompt.required": "{{field}} est requis",
+  "provider.connect.azure.endpointType.label": "Sélectionner la configuration du point de terminaison Azure",
+  "provider.connect.azure.endpointType.resourceName.label": "Nom de la ressource",
+  "provider.connect.azure.endpointType.resourceName.hint":
+    "Créer le point de terminaison à partir du nom de votre ressource Azure",
+  "provider.connect.azure.endpointType.baseURL.label": "URL complète du point de terminaison",
+  "provider.connect.azure.endpointType.baseURL.hint": "Utiliser un point de terminaison Azure OpenAI personnalisé",
+  "provider.connect.azure.resourceName.label": "Nom de la ressource Azure",
+  "provider.connect.azure.resourceName.placeholder": "ex. my-models",
+  "provider.connect.azure.baseURL.label": "URL du point de terminaison Azure OpenAI",
+  "provider.connect.azure.baseURL.placeholder": "ex. https://my-models.openai.azure.com/openai",
   "provider.connect.opencodeZen.line1":
     "OpenCode Zen vous donne accès à un ensemble sélectionné de modèles fiables et optimisés pour les agents de codage.",
   "provider.connect.opencodeZen.line2":
@@ -262,9 +273,16 @@ export const dict = {
   "prompt.action.send.blocked": "Répondez ou rejetez d'abord la question en attente",
   "prompt.action.stop": "Arrêter",
   "prompt.action.enhance": "Améliorer le prompt",
+  "prompt.action.autoApprove.enable": "Activer l'approbation automatique",
+  "prompt.action.autoApprove.disable": "Désactiver l'approbation automatique",
+  "prompt.action.autoApprove.enabled":
+    "L'approbation automatique est activée. Les demandes d'autorisation seront approuvées automatiquement.",
+  "prompt.action.autoApprove.disabled":
+    "L'approbation automatique est désactivée. Cliquez pour approuver automatiquement les demandes d'autorisation.",
   "prompt.action.resetModel": "Réinitialiser le modèle par défaut",
   "prompt.action.enhanceDescription":
     "Le bouton 'Améliorer la requête' aide à améliorer votre demande en fournissant un contexte supplémentaire, des clarifications ou des reformulations. Essayez de taper une demande ici et cliquez à nouveau sur le bouton pour voir comment cela fonctionne.",
+  "prompt.action.indexing": "Paramètres d'indexation",
 
   "prompt.toast.pasteUnsupported.title": "Collage non supporté",
   "prompt.toast.pasteUnsupported.description": "Seules les images ou les PDF peuvent être collés ici.",
@@ -543,7 +561,40 @@ export const dict = {
   "session.new.worktree.mainWithBranch": "Branche principale ({{branch}})",
   "session.new.worktree.create": "Créer un nouvel arbre de travail",
   "session.new.lastModified": "Dernière modification",
-
+  "sidebar.session.newSession": "Nouvelle Session",
+  "sidebar.session.newSession.tooltip":
+    "Démarrer une nouvelle conversation tout en gardant la session actuelle intacte.",
+  "sidebar.session.newSession.disabled":
+    "Cette session est déjà nouvelle. Commencez à discuter ou créez plutôt un worktree.",
+  "sidebar.session.newWorktree": "Nouveau Worktree",
+  "sidebar.session.newWorktree.tooltip":
+    "Créer un git worktree isolé pour expérimenter en toute sécurité, séparer les modifications et exécuter des sessions parallèles sans perturber votre branche actuelle.",
+  "sidebar.session.configureWorktree.tooltip":
+    "Ouvrez la boîte de dialogue worktree du Agent Manager pour configurer un nouveau worktree avant de le créer.",
+  "sidebar.session.newWorktree.from": "Nouveau Worktree depuis",
+  "sidebar.session.currentBranch": "branche actuelle",
+  "sidebar.session.moveToWorktree": "Déplacer vers un Worktree",
+  "sidebar.session.moveToWorktree.tooltip.empty":
+    "Déplacez cette conversation et vos modifications locales actuelles dans un worktree dédié pour un travail de suivi isolé.",
+  "sidebar.session.moveToWorktree.tooltip.one":
+    "Déplacer cette conversation et 1 fichier modifié vers un worktree dédié pour un travail de suivi isolé.",
+  "sidebar.session.moveToWorktree.tooltip.other":
+    "Déplacer cette conversation et {{files}} fichiers modifiés vers un worktree dédié pour un travail de suivi isolé.",
+  "sidebar.session.showChanges.tooltip.empty":
+    "Ouvrez la vue des modifications pour inspecter l'arborescence de travail actuelle.",
+  "sidebar.session.showChanges.tooltip.one":
+    "1 fichier modifié · +{{additions}} -{{deletions}}. Ouvrir la vue des modifications.",
+  "sidebar.session.showChanges.tooltip.other":
+    "{{files}} fichiers modifiés · +{{additions}} -{{deletions}}. Ouvrir la vue des modifications.",
+  "sidebar.session.agentManager.tooltip":
+    "Ouvrez Agent Manager pour une vue d'ensemble complète des sessions parallèles et des worktrees, afin de coordonner les tâches longues en un seul endroit.",
+  "sidebar.session.openAgentManager": "Ouvrir Agent Manager",
+  "sidebar.session.progress.capturing": "Capture des modifications...",
+  "sidebar.session.progress.creating": "Création du worktree...",
+  "sidebar.session.progress.setup": "Exécution de la configuration...",
+  "sidebar.session.progress.transferring": "Transfert des modifications...",
+  "sidebar.session.progress.forking": "Démarrage de la session...",
+  "sidebar.session.progress.failed": "Échec de la poursuite dans le worktree",
   "session.header.search.placeholder": "Rechercher {{project}}",
   "session.header.searchFiles": "Rechercher des fichiers",
   "session.header.openIn": "Ouvrir dans",
@@ -637,6 +688,43 @@ export const dict = {
 
   "settings.general.row.releaseNotes.title": "Notes de version",
   "settings.general.row.releaseNotes.description": 'Afficher des pop-ups "Quoi de neuf" après les mises à jour',
+
+  "settings.indexing.dimension.description":
+    "Laissez vide pour détecter automatiquement la dimension d'embedding à partir du modèle.",
+  "settings.indexing.dimension.placeholder": "Auto",
+  "settings.indexing.dimension.title": "Dimension vectorielle",
+  "settings.indexing.enable.description": "Activer ou désactiver l'indexation sémantique de la base de code.",
+  "settings.indexing.enable.title": "Activer l'indexation",
+  "settings.indexing.globalEnable.title": "Activer globalement",
+  "settings.indexing.globalEnable.description": "Activer l'indexation pour chaque espace de travail.",
+  "settings.indexing.projectEnable.title": "Activer pour ce projet",
+  "settings.indexing.projectEnable.description":
+    "Activer l'indexation pour cet espace de travail lorsque l'indexation globale est désactivée.",
+  "settings.indexing.projectEnable.disabledTooltip":
+    "L'indexation globale est activée, ce projet est donc déjà pris en compte.",
+  "settings.indexing.lancedbDirectory.description": "Répertoire optionnel pour le stockage local LanceDB.",
+  "settings.indexing.lancedbDirectory.placeholder": "Laissez vide pour la valeur par défaut",
+  "settings.indexing.lancedbDirectory.title": "Répertoire LanceDB",
+  "settings.indexing.model.description": "Remplacer le modèle d'embedding par défaut pour le fournisseur sélectionné.",
+  "settings.indexing.model.title": "Modèle d'embedding",
+  "settings.indexing.provider.description":
+    "Choisissez le fournisseur utilisé pour générer les embeddings pour la recherche sémantique.",
+  "settings.indexing.kiloModel.title": "Préréglage de modèle Kilo",
+  "settings.indexing.kiloModel.description": "Choisissez un modèle d'embedding hébergé par Kilo pris en charge.",
+  "settings.indexing.kiloSignIn.title": "Connexion à Kilo requise",
+  "settings.indexing.kiloSignIn.description": "Connectez-vous à Kilo pour utiliser les embeddings hébergés.",
+  "settings.indexing.provider.title": "Fournisseur d'embedding",
+  "settings.indexing.providerField.description": "Paramètre de connexion spécifique au fournisseur.",
+  "settings.indexing.qdrantApiKey.description": "Clé API optionnelle pour l'instance Qdrant.",
+  "settings.indexing.qdrantApiKey.placeholder": "Clé API optionnelle",
+  "settings.indexing.qdrantApiKey.title": "Clé API Qdrant",
+  "settings.indexing.qdrantUrl.description": "URL du serveur pour l'instance Qdrant.",
+  "settings.indexing.qdrantUrl.title": "URL Qdrant",
+  "settings.indexing.status.title": "Statut",
+  "settings.indexing.title": "Indexation",
+  "settings.indexing.tuning.description": "Paramètre avancé de recherche et de traitement par lots.",
+  "settings.indexing.vectorStore.description": "Choisissez où les embeddings indexés sont stockés.",
+  "settings.indexing.vectorStore.title": "Stockage vectoriel",
 
   "settings.updates.row.startup.title": "Vérifier les mises à jour au démarrage",
   "settings.updates.row.startup.description": "Vérifier automatiquement les mises à jour au lancement d'Kilo",
@@ -1128,6 +1216,8 @@ export const dict = {
     "Utiliser un raccourci intelligent pour déclencher les tâches en ligne",
   "settings.autocomplete.chatAutocomplete.title": "Activer l'autocomplétion du chat",
   "settings.autocomplete.chatAutocomplete.description": "Afficher les suggestions d'autocomplétion dans le chat",
+  "settings.autocomplete.modelsHint":
+    "Pour choisir le modèle utilisé pour l'autocomplétion, consultez les paramètres des Modèles.",
   "settings.notifications.agent.title": "Achèvement de l'agent",
   "settings.notifications.agent.description": "Afficher une notification lorsque l'agent termine une tâche",
   "settings.notifications.permissions.title": "Demandes d'autorisation",
@@ -1156,9 +1246,15 @@ export const dict = {
   "settings.experimental.pasteSummary.description": "Ne pas résumer le contenu collé volumineux",
   "settings.experimental.batch.title": "Outil par lot",
   "settings.experimental.batch.description": "Activer le traitement par lot d'appels d'outils",
+  "settings.experimental.semanticIndexing.title": "Semantic Indexing",
+  "settings.experimental.semanticIndexing.description":
+    "Enable semantic codebase indexing and the semantic_search tool. Requires indexing configuration.",
   "settings.experimental.codebaseSearch.title": "Recherche de code",
   "settings.experimental.codebaseSearch.description":
     "Activer la recherche en langage naturel par IA dans toute la base de code",
+  "settings.experimental.agentManagerTool.title": "Outil Agent Manager",
+  "settings.experimental.agentManagerTool.description":
+    "Autoriser les agents à démarrer des sessions locales Agent Manager et des sessions worktree depuis un appel d'outil",
   "settings.experimental.continueOnDeny.title": "Continuer en cas de refus",
   "settings.experimental.continueOnDeny.description":
     "Continuer la boucle de l'agent lorsqu'une autorisation est refusée",
@@ -1362,6 +1458,16 @@ export const dict = {
   "settings.display.layout.description": "Mode de disposition pour l'interface de chat",
   "settings.display.layout.auto": "Automatique",
   "settings.display.layout.stretch": "Étiré",
+  "settings.display.fontSize.title": "Taille de la police",
+  "settings.display.fontSize.description":
+    "Ajustez la taille de la police de la webview UI de Kilo indépendamment de VS Code.",
+  "settings.display.reasoningAutoCollapse.title": "Réduire automatiquement le raisonnement",
+  "settings.display.reasoningAutoCollapse.description":
+    "Réduit les blocs de raisonnement une fois que l'agent a fini de les écrire. Laissez désactivé pour garder le raisonnement développé, sauf si vous le réduisez manuellement.",
+  "settings.display.terminalCommand.title": "Terminal Command Blocks",
+  "settings.display.terminalCommand.description": "Choose whether terminal command blocks start expanded or collapsed.",
+  "settings.display.terminalCommand.expanded": "Expanded",
+  "settings.display.terminalCommand.collapsed": "Collapsed",
   "settings.providers.defaultModel.title": "Modèle par défaut",
   "settings.providers.defaultModel.description": "Modèle principal pour les conversations",
   "settings.providers.smallModel.title": "Petit modèle",
@@ -1369,6 +1475,7 @@ export const dict = {
     "Modèle léger pour la génération de titres, de messages de commit, l'amélioration de prompts et d'autres tâches rapides",
   "settings.providers.disabled": "Fournisseurs désactivés",
   "settings.providers.disabled.description": "Fournisseurs à masquer de la liste",
+  "settings.providers.disabled.enable": "Activer",
   "settings.providers.enabled": "Fournisseurs activés (liste blanche)",
   "settings.providers.enabled.description": "Si défini, seuls ces fournisseurs seront disponibles",
   "settings.providers.notSet": "Non défini (utiliser la valeur par défaut du serveur)",
@@ -1490,4 +1597,28 @@ export const dict = {
   "notifications.action.close": "Fermer",
   "notifications.action.tryModel": "Essayer {{model}}",
   "notifications.action.tryModelGeneric": "Essayer le modèle",
+  "diffViewer.source.workspace.label": "Branche",
+  "diffViewer.source.workspace.tooltip":
+    "Toutes les modifications de cette branche par rapport à la branche de base. Inclut les fichiers non commités (staged, unstaged, non suivis) et les commits locaux qui ne sont pas encore dans la branche de base.",
+  "diffViewer.source.staged.label": "Indexé",
+  "diffViewer.source.staged.tooltip":
+    "Fichiers avec des modifications que vous avez ajoutées à la zone de staging de git (`git add`), tels qu'ils apparaîtront dans le prochain commit.",
+  "diffViewer.source.unstaged.label": "Non indexé",
+  "diffViewer.source.unstaged.tooltip":
+    "Fichiers modifiés dans votre arborescence de travail mais pas encore indexés, plus les fichiers non suivis (nouveaux).",
+  "diffViewer.source.session.label": "Session",
+  "diffViewer.source.session.tooltip":
+    "Fichiers modifiés par Kilo pendant la session actuelle, basé sur des snapshots par tour. Réinitialisé lors du démarrage d'une nouvelle session.",
+  "diffViewer.group.session": "Session",
+  "diffViewer.group.git": "Git",
+  "diffViewer.notice.snapshotsDisabled":
+    "Les instantanés sont désactivés pour ce dépôt. Veuillez modifier vos fichiers de configuration pour afficher les changements de la session.",
+
+  "diffViewer.baseBranch.auto": "Par défaut",
+  "diffViewer.baseBranch.default": "Par défaut",
+  "diffViewer.baseBranch.remote": "Distante",
+  "diffViewer.baseBranch.search": "Rechercher des branches",
+  "diffViewer.baseBranch.empty": "Aucune branche correspondante",
+  "diffViewer.baseBranch.loading": "Chargement des branches…",
+  "diffViewer.baseBranch.none": "—",
 }
