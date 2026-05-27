@@ -229,6 +229,11 @@ export const layer: Layer.Layer<
             attachments: output.attachments,
           },
         })
+        // kilocode_change start - accepted suggest review actions tag following LLM completion telemetry
+        if (match.part.tool === "suggest") {
+          ctx.telemetry = KiloSessionProcessor.suggestionReviewTelemetry(output.metadata) ?? ctx.telemetry
+        }
+        // kilocode_change end
         yield* settleToolCall(toolCallID)
       })
 
@@ -241,6 +246,7 @@ export const layer: Layer.Layer<
             status: "error",
             input: match.part.state.input,
             error: errorMessage(error),
+            metadata: match.part.state.metadata, // kilocode_change - preserve running tool metadata on failure
             time: { start: match.part.state.time.start, end: Date.now() },
           },
         })

@@ -31,6 +31,7 @@ import { SessionProcessor } from "../../src/session/processor"
 import { SessionPrompt } from "../../src/session/prompt"
 import { SessionRevert } from "../../src/session/revert"
 import { SessionRunState } from "../../src/session/run-state"
+import { Suggestion } from "../../src/kilocode/suggestion" // kilocode_change - accept suggestion in telemetry test
 import { MessageID, PartID, SessionID } from "../../src/session/schema"
 import { SessionStatus } from "../../src/session/status"
 import { SessionV2 } from "../../src/v2/session"
@@ -45,6 +46,7 @@ import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
 import * as Database from "../../src/storage/db"
 import { Ripgrep } from "../../src/file/ripgrep"
 import { Format } from "../../src/format"
+import { Git } from "../../src/git" // kilocode_change
 import { provideTmpdirInstance, provideTmpdirServer } from "../fixture/fixture"
 import { testEffect } from "../lib/effect"
 import { reply, TestLLMServer } from "../lib/llm-server"
@@ -193,6 +195,7 @@ function makeHttp() {
     Layer.provide(CrossSpawnSpawner.defaultLayer),
     Layer.provide(Ripgrep.defaultLayer),
     Layer.provide(Format.defaultLayer),
+    Layer.provide(Git.defaultLayer), // kilocode_change
     Layer.provideMerge(todo),
     Layer.provideMerge(question),
     Layer.provideMerge(deps),
@@ -744,6 +747,50 @@ it.live(
     ),
   10_000, // kilocode_change
 )
+
+// kilocode_change start - child task failures stay tool errors so the parent can recover
+it.live("failed task tool preserves metadata and lets the parent follow up", () =>
+  provideTmpdirServer(
+    Effect.fnUntraced(function* ({ llm }) {
+      const prompt = yield* SessionPrompt.Service
+      const sessions = yield* Session.Service
+      const chat = yield* sessions.create({
+        title: "Pinned",
+        permission: [{ permission: "*", pattern: "*", action: "allow" }],
+      })
+      yield* llm.tool("task", {
+        description: "inspect bug",
+        prompt: "look into the cache key path",
+        subagent_type: "general",
+      })
+      yield* llm.error(400, { error: { message: "child prompt failed" } })
+      yield* llm.text("parent recovered")
+      yield* user(chat.id, "hello")
+
+      const result = yield* prompt.loop({ sessionID: chat.id })
+      expect(yield* llm.calls).toBe(3)
+      expect(result.parts.some((part) => part.type === "text" && part.text === "parent recovered")).toBe(true)
+
+      const msgs = yield* MessageV2.filterCompactedEffect(chat.id)
+      const part = msgs
+        .flatMap((msg) => msg.parts)
+        .find(
+          (part): part is ErrorToolPart =>
+            part.type === "tool" && part.tool === "task" && part.state.status === "error",
+        )
+      expect(part).toBeDefined()
+      if (!part) return
+      expect(part.state.error).toContain("child prompt failed")
+      expect(part.state.metadata?.sessionId).toBeDefined()
+
+      const hits = yield* llm.hits
+      expect(hits).toHaveLength(3)
+      expect(JSON.stringify(hits.at(-1)?.body)).toContain("child prompt failed")
+    }),
+    { git: true, config: providerCfg },
+  ),
+)
+// kilocode_change end
 
 it.live(
   "loop sets status to busy then idle",
@@ -2137,6 +2184,59 @@ it.live(
         const tagged = trackSpy.mock.calls
           .map((args) => args[0] as Parameters<typeof Telemetry.trackLlmCompletion>[0])
           .find((p) => p.mode === "review" && p.feature === "code_reviews" && p.command === "review")
+        expect(tagged).toBeDefined()
+      }),
+      { git: true, config: providerCfg },
+    ),
+  30_000,
+)
+
+it.live(
+  "accepted suggest tool marks following completion with review telemetry",
+  () =>
+    provideTmpdirServer(
+      Effect.fnUntraced(function* ({ llm }) {
+        const trackSpy = spyOn(Telemetry, "trackLlmCompletion")
+        const prompt = yield* SessionPrompt.Service
+        const sessions = yield* Session.Service
+        const chat = yield* sessions.create({
+          title: "Suggest telemetry",
+          permission: [{ permission: "*", pattern: "*", action: "allow" }],
+        })
+
+        yield* llm.tool("suggest", {
+          suggest: "Run a local review?",
+          actions: [{ label: "Review", prompt: "/local-review-uncommitted --focus telemetry" }],
+        })
+        yield* llm.text("review done", { usage: { input: 100, output: 50 } })
+
+        const fiber = yield* prompt
+          .prompt({
+            sessionID: chat.id,
+            agent: "build",
+            model: ref,
+            parts: [{ type: "text", text: "Suggest a review action." }],
+          })
+          .pipe(Effect.forkChild)
+        const request = yield* waitFor(
+          "suggestion request",
+          Effect.promise(() => Suggestion.list()).pipe(
+            Effect.map((items) => items.find((item) => item.sessionID === chat.id)),
+          ),
+        )
+
+        yield* Effect.promise(() => Suggestion.accept({ requestID: request.id, index: 0 }))
+        yield* Fiber.join(fiber)
+
+        const tagged = trackSpy.mock.calls
+          .map((args) => args[0] as Parameters<typeof Telemetry.trackLlmCompletion>[0])
+          .find(
+            (p) =>
+              p.mode === "review" &&
+              p.feature === "code_reviews" &&
+              p.command === "local-review-uncommitted" &&
+              p.tool === "suggest",
+          )
         expect(tagged).toBeDefined()
       }),
       { git: true, config: providerCfg },
