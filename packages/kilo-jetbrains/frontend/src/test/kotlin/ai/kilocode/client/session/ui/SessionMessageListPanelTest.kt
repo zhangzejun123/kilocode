@@ -26,6 +26,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import java.awt.Container
+import javax.swing.JPanel
 
 /**
  * Tests for [SessionMessageListPanel] — structural and index integrity.
@@ -165,6 +166,18 @@ class SessionMessageListPanelTest : BasePlatformTestCase() {
         assertTrue(mv.part("p1") is TextView)
     }
 
+    fun `test text markdown link uses panel url opener`() {
+        val urls = mutableListOf<String>()
+        val item = SessionMessageListPanel(model, parent, openFile = openFile, openUrl = { urls.add(it) })
+        model.upsertMessage(msg("a1", "assistant"))
+        model.updateContent("a1", part("p1", "a1", "text", text = "[docs](https://kilocode.ai/docs)"))
+
+        val view = item.findMessage("a1")!!.part("p1") as TextView
+        view.md.simulateLink("https://kilocode.ai/docs")
+
+        assertEquals(listOf("https://kilocode.ai/docs"), urls)
+    }
+
     fun `test ContentDelta appends text to TextView`() {
         model.upsertMessage(msg("a1", "assistant"))
         model.updateContent("a1", part("p1", "a1", "text", text = "hello "))
@@ -172,6 +185,31 @@ class SessionMessageListPanelTest : BasePlatformTestCase() {
 
         val tv = panel.findMessage("a1")!!.part("p1") as TextView
         assertEquals("hello world", tv.markdown())
+    }
+
+    fun `test ContentDelta preserves TextView and markdown component`() {
+        model.upsertMessage(msg("a1", "assistant"))
+        model.updateContent("a1", part("p1", "a1", "text", text = "first\n\nsecond"))
+        val mv = panel.findMessage("a1")!!
+        val tv = mv.part("p1") as TextView
+        val comp = tv.md.component
+        val first = (comp as JPanel).components.first()
+
+        model.appendDelta("a1", "p1", " more")
+
+        assertSame(tv, mv.part("p1"))
+        assertSame(comp, tv.md.component)
+        assertSame(first, comp.components.first())
+        assertEquals("first\n\nsecond more", tv.markdown())
+    }
+
+    fun `test created ContentDelta is not double applied`() {
+        model.upsertMessage(msg("a1", "assistant"))
+
+        model.appendDelta("a1", "p1", "hello")
+
+        val tv = panel.findMessage("a1")!!.part("p1") as TextView
+        assertEquals("hello", tv.markdown())
     }
 
     fun `test ContentRemoved removes PartView from MessageView`() {
@@ -258,6 +296,7 @@ class SessionMessageListPanelTest : BasePlatformTestCase() {
         assertSame(message, panel.findMessage("a1"))
         assertSame(text, panel.findMessage("a1")!!.part("p1"))
         assertSame(comp, text.md.component)
+        assertTrue(text.md.overrideSheet().contains(style.transcriptFont.name))
         assertTrue(text.md.overrideSheet().contains("Courier New"))
         assertTrue(text.md.overrideSheet().contains("24pt"))
     }
@@ -270,6 +309,7 @@ class SessionMessageListPanelTest : BasePlatformTestCase() {
         model.updateContent("a1", part("p1", "a1", "text", text = "hello"))
 
         val text = panel.findMessage("a1")!!.part("p1") as TextView
+        assertTrue(text.md.overrideSheet().contains(style.transcriptFont.name))
         assertTrue(text.md.overrideSheet().contains("Courier New"))
         assertTrue(text.md.overrideSheet().contains("25pt"))
     }

@@ -3,6 +3,7 @@ package ai.kilocode.client.session.views
 import ai.kilocode.client.session.views.base.GenericView
 import ai.kilocode.client.session.views.base.PartView
 import ai.kilocode.client.session.views.question.QuestionResultView
+import ai.kilocode.client.session.ui.selection.SessionSelection
 import ai.kilocode.client.session.model.Compaction
 import ai.kilocode.client.session.model.Content
 import ai.kilocode.client.session.model.Generic
@@ -21,18 +22,56 @@ import ai.kilocode.client.session.views.todo.TodoWriteView
  * 3. Add a branch here — the exhaustive `when` will surface the gap as a compile error.
  */
 object ViewFactory {
-    fun create(content: Content, openFile: (String) -> Unit): PartView = when (content) {
-        is Text -> TextView(content)
-        is Reasoning -> ReasoningView(content)
+    fun create(
+        content: Content,
+        openFile: (String) -> Unit,
+    ): PartView = create(content, openFile, openUrl = {}, selection = null)
+
+    fun create(
+        content: Content,
+        openFile: (String) -> Unit,
+        openUrl: (String) -> Unit,
+    ): PartView = create(content, openFile, openUrl, selection = null)
+
+    fun create(
+        content: Content,
+        openFile: (String) -> Unit,
+        openUrl: (String) -> Unit = {},
+        selection: SessionSelection? = null,
+    ): PartView = when (content) {
+        is Text -> TextView(content, openUrl = openUrl, selection = selection)
+        is Reasoning -> ReasoningView(content, openUrl = openUrl, selection = selection)
         is Tool -> when {
             TodoWriteView.canRender(content) -> TodoWriteView(content)
-            PlanExitView.canRender(content) -> PlanExitView(content, openFile)
-            QuestionResultView.canRender(content) -> QuestionResultView(content)
-            else -> ToolView(content)
+            PlanExitView.canRender(content) -> PlanExitView(content, openFile, selection)
+            QuestionResultView.canRender(content) -> QuestionResultView(content, selection)
+            ReadToolView.canRender(content) -> ReadToolView(content, openFile, selection = selection)
+            else -> ToolView(content, selection = selection)
         }
         is Compaction -> CompactionView(content)
         is StepFinish -> error("step-finish is timeline-only")
         is Generic -> GenericView(content)
+    }
+
+    fun createUser(
+        content: Content,
+        openFile: (String) -> Unit,
+    ): PartView = createUser(content, openFile, openUrl = {}, selection = null)
+
+    fun createUser(
+        content: Content,
+        openFile: (String) -> Unit,
+        openUrl: (String) -> Unit,
+    ): PartView = createUser(content, openFile, openUrl, selection = null)
+
+    fun createUser(
+        content: Content,
+        openFile: (String) -> Unit,
+        openUrl: (String) -> Unit = {},
+        selection: SessionSelection? = null,
+    ): PartView = when (content) {
+        is Text -> PromptView(content, openUrl = openUrl, selection = selection)
+        else -> create(content, openFile, openUrl, selection)
     }
 
     /**
@@ -47,6 +86,8 @@ object ViewFactory {
         if (view is PlanExitView) return !PlanExitView.canRender(content)
         if (view !is PlanExitView && PlanExitView.canRender(content)) return true
         if (view is QuestionResultView) return !QuestionResultView.canRender(content)
+        if (view is ReadToolView) return !ReadToolView.canRender(content) || QuestionResultView.canRender(content)
+        if (view is ToolView && ReadToolView.canRender(content)) return true
         if (view is ToolView) return QuestionResultView.canRender(content)
         return false
     }

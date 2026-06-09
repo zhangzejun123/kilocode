@@ -171,6 +171,7 @@ function planEditRules(worktree: string) {
   return {
     "*": "deny" as const,
     [path.join(".kilo", "plans", "*.md")]: "allow" as const,
+    [path.join(".plans", "*.md")]: "allow" as const,
     [path.join(".opencode", "plans", "*.md")]: "allow" as const,
     [path.relative(worktree, path.join(Global.Path.data, path.join("plans", "*.md")))]: "allow" as const,
   }
@@ -231,6 +232,16 @@ export function prepare(cfg: Config.Info): KiloData {
   const mcpRules = getMcpRules(cfg)
   const defaultsPatch = Permission.fromConfig({ bash, recall: "ask" })
   return { mcpRules, defaultsPatch }
+}
+
+export function cacheKey(cfg: Config.Info) {
+  return JSON.stringify({
+    agent: cfg.agent,
+    default_agent: cfg.default_agent,
+    mcp: cfg.mcp,
+    mode: cfg.mode,
+    permission: cfg.permission,
+  })
 }
 
 // Map "build" config key to "code" for backward compatibility.
@@ -465,8 +476,8 @@ export async function remove(name: string) {
   let found = false
 
   // 1. Delete .md files from config directories
-  const { Config } = await import("../../config/config")
-  const dirs = await Config.directories()
+  const { AppRuntime } = await import("@/effect/app-runtime")
+  const dirs = await AppRuntime.runPromise(Config.Service.use((svc) => svc.directories()))
   const patterns = ["{agent,agents}/**/" + name + ".md", "{mode,modes}/" + name + ".md"]
   for (const dir of dirs) {
     for (const pattern of patterns) {

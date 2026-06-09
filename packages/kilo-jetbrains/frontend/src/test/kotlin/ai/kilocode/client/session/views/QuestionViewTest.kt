@@ -515,6 +515,7 @@ class QuestionViewTest : BasePlatformTestCase() {
 
     fun `test selection requests scroll to bottom`() {
         view.show(singleSelectQuestion("q_scroll"))
+        scrolls = 0
 
         option<JBRadioButton>(view, "Minimal").doClick()
 
@@ -523,6 +524,7 @@ class QuestionViewTest : BasePlatformTestCase() {
 
     fun `test question navigation requests scroll to bottom`() {
         view.show(twoItemQuestion("q_nav_scroll"))
+        scrolls = 0
 
         option<JBRadioButton>(view, "Minimal").doClick()
         button(view, "Next").doClick()
@@ -702,6 +704,18 @@ class QuestionViewTest : BasePlatformTestCase() {
         option<JBRadioButton>(view, "Minimal").doClick()
 
         assertNull("Empty custom editor should be removed after selecting a normal option", findAll<EditorTextField>(view).firstOrNull { it.parent != null })
+    }
+
+    fun `test empty custom editor is detached after forcing underlying editor creation`() {
+        view.show(customSingleQuestion("q_custom_editor_release"))
+        findAll<JBRadioButton>(view).first { it.actionCommand == "" }.doClick()
+        val field = findAll<EditorTextField>(view).first()
+        val editor = field.getEditor(true)
+        assertSame(editor, field.getEditor(false))
+
+        option<JBRadioButton>(view, "Minimal").doClick()
+
+        assertNull(SwingUtilities.getAncestorOfClass(QuestionView::class.java, field))
     }
 
     fun `test focusing retained custom editor reselects custom response`() {
