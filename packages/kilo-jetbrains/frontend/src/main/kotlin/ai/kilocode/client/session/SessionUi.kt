@@ -287,7 +287,18 @@ class SessionUi(
             dismiss = { controller.dismissLoginRequired() },
             selection = selection,
         )
-        messageBody = SessionMessageListPanel(controller.model, this, question, permission, login, ::openFile, ::openUrl, selection)
+        messageBody = SessionMessageListPanel(
+            controller.model,
+            this,
+            question,
+            permission,
+            login,
+            ::openFile,
+            ::openUrl,
+            selection,
+            repo = workspace.directory,
+            resize = { anchor, fn -> scroll.preserve(anchor, fn) },
+        )
         header = SessionHeaderPanel(controller, this)
 
         scroll = SessionScroll(root, sessionContent, messageBody, blankBody)
@@ -297,6 +308,7 @@ class SessionUi(
             project = project,
             onSend = { text -> sendPrompt(text) },
             onAbort = { controller.abort() },
+            onEnhance = controller::enhancePrompt,
         )
 
         sessionContent.add(header, BorderLayout.NORTH)

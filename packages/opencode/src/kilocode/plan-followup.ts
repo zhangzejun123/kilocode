@@ -17,7 +17,7 @@ import { MessageV2 } from "@/session/message-v2"
 import { SessionStatus } from "@/session/status"
 import { Todo } from "@/session/todo"
 import { makeRuntime } from "@/effect/run-service"
-import { Effect } from "effect"
+import { Effect, Schema } from "effect"
 import * as Log from "@opencode-ai/core/util/log"
 import { KiloSessionPromptQueue } from "@/kilocode/session/prompt-queue"
 import { lazy } from "@/util/lazy"
@@ -178,7 +178,12 @@ export namespace PlanFollowup {
 
   const ModelState = z
     .object({
-      model: z.record(z.string(), z.object({ providerID: ProviderID.zod, modelID: ModelID.zod })).optional(),
+      model: z
+        .record(
+          z.string(),
+          z.object({ providerID: z.custom<ProviderID>(Schema.is(ProviderID)), modelID: z.custom<ModelID>(Schema.is(ModelID)) }),
+        )
+        .optional(),
       variant: z.record(z.string(), z.string().optional()).optional(),
     })
     .passthrough()
@@ -238,7 +243,9 @@ export namespace PlanFollowup {
     const session = await PlanFollowupRuntime.session((svc) => svc.get(SessionID.make(input.sessionID)))
     const file =
       PlanFile.resolve(PlanFile.latest(input.messages), Instance.current) ?? Session.plan(session, Instance.current)
-    const plan = await Bun.file(file).text().catch(() => "")
+    const plan = await Bun.file(file)
+      .text()
+      .catch(() => "")
     return plan.trim()
   }
 
@@ -340,7 +347,6 @@ export namespace PlanFollowup {
 
   async function startNew(input: {
     sessionID: SessionID
-    plan: string
     file?: string
     messages: MessageV2.WithParts[]
     model: MessageV2.User["model"]
@@ -378,19 +384,18 @@ export namespace PlanFollowup {
 
           // Assemble the user message text with or without a handover section.
           // The section order is fixed so the initial and final renders stay
-          // aligned — only the handover block grows in between.
+          // aligned; only the handover block grows in between.
           const compose = (handover: string) => {
             const sections = [
               `Plan file: ${file}\nRead this file first and treat it as the source of truth for implementation.`,
-              `Implement the following plan:\n\n${input.plan}`,
             ]
             if (handover) sections.push(`## Handover from Planning Session\n\n${handover}`)
             if (todoList) sections.push(`## Todo List\n\n${todoList}`)
             return sections.join("\n\n")
           }
 
-          // Inject the plan and todos immediately so the new session tab shows
-          // real content right away. The handover section is appended to this
+          // Inject the plan-file handoff and todos immediately so the new session tab
+          // shows useful content right away. The handover section is appended to this
           // same part in-place once the slow LLM call resolves below.
           const msg: MessageV2.User = {
             id: MessageID.ascending(),
@@ -510,7 +515,6 @@ export namespace PlanFollowup {
       const file = PlanFile.resolve(PlanFile.latest(input.messages), ctx)
       await startNew({
         sessionID: input.sessionID,
-        plan,
         file: file ? PlanFile.display(file, ctx) : undefined,
         messages: input.messages,
         model: user.model,
