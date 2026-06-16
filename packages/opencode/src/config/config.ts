@@ -10,7 +10,6 @@ import { Flag } from "@opencode-ai/core/flag/flag"
 import { Auth } from "../auth"
 import { Env } from "../env"
 import { applyEdits, findNodeAtLocation, modify, parseTree } from "jsonc-parser" // kilocode_change - parseTree/findNodeAtLocation used in patchJsonc
-import { type InstanceContext } from "../project/instance"
 import { InstallationLocal, InstallationVersion } from "@opencode-ai/core/installation/version"
 import { existsSync } from "fs"
 // kilocode_change start
@@ -24,7 +23,7 @@ import { AppFileSystem } from "@opencode-ai/core/filesystem"
 import { InstanceState } from "@/effect/instance-state"
 import { Context, Duration, Effect, Exit, Fiber, Layer, Option, Schema } from "effect"
 import { EffectFlock } from "@opencode-ai/core/util/effect-flock"
-import { containsPath } from "../project/instance-context"
+import { containsPath, type InstanceContext } from "../project/instance-context"
 import { NonNegativeInt, PositiveInt, type DeepMutable } from "@opencode-ai/core/schema"
 import { ConfigAgent } from "./agent"
 import { ConfigAttachment } from "./attachment"
@@ -236,6 +235,12 @@ export const Info = Schema.Struct({
   }),
   subagent_variant: Schema.optional(Schema.NullOr(Schema.String)).annotate({
     description: "Default model variant for task-tool subagents when subagent_model is configured.",
+  }),
+  subagent_variant_overrides: Schema.optional(
+    Schema.NullOr(Schema.Record(Schema.String, Schema.NullOr(Schema.String))),
+  ).annotate({
+    description:
+      "Model-specific variant overrides for task-tool subagents, keyed by provider/model. Valid overrides take precedence over saved, agent-specific, and inherited variants.",
   }),
   default_agent: Schema.optional(Schema.NullOr(Schema.String)).annotate({
     description:
